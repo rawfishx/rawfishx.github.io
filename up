@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Warna-warna biar keren
+green='\e[92m'
+red='\e[91m'
+endc='\e[0m'
+
+echo -e "${green}[•] Mengecek update dari GitHub...${endc}"
+sleep 1
+
+# Cek apakah folder ini adalah git repo
+if [ -d .git ]; then
+    git pull origin main || git pull origin master
+    echo -e "${green}[✓] Update selesai!${endc}"
+else
+    echo -e "${red}[!] Folder ini bukan hasil git clone, nggak bisa update otomatis.${endc}"
+    echo -e "${red}[!] Silakan hapus folder ini dan clone ulang dari GitHub.${endc}"
+fi
