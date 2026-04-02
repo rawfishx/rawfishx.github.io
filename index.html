@@ -1,1 +1,235 @@
-<h1>halo ngab... upload file apa nih??..</h1>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Gallery</title>
+
+<style>
+:root {
+  --bg: #0f0f0f;
+  --card: #1a1a1a;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: white;
+  -webkit-tap-highlight-color: transparent;
+}
+
+header {
+  padding: 15px;
+  font-size: 18px;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
+}
+
+#backBtn {
+  display: none;
+  margin: 10px 15px;
+  padding: 8px 12px;
+  background: #222;
+  border: none;
+  color: white;
+  border-radius: 8px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 8px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: 0.3s ease;
+}
+
+.card.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card img {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  display: block;
+}
+
+.name {
+  font-size: 11px;
+  padding: 4px;
+  text-align: center;
+}
+
+/* Modal Fullscreen */
+#modal {
+  position: fixed;
+  inset: 0;
+  background: black;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  touch-action: none;
+}
+
+#modal img {
+  max-width: 100%;
+  max-height: 85%;
+  transition: transform 0.2s ease;
+}
+
+#modalName {
+  padding: 10px;
+  font-size: 14px;
+}
+
+#closeModal {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 26px;
+}
+</style>
+</head>
+<body>
+
+<header id="title">Gallery</header>
+<button id="backBtn">← Kembali</button>
+<div class="grid" id="gallery"></div>
+
+<div id="modal">
+  <div id="closeModal">✕</div>
+  <img id="modalImg">
+  <div id="modalName"></div>
+</div>
+
+<script>
+const username = "rawfishx";
+const repo = "rawfishx.github.io";
+const basePath = "photos";
+
+const gallery = document.getElementById("gallery");
+const title = document.getElementById("title");
+const backBtn = document.getElementById("backBtn");
+
+const modal = document.getElementById("modal");
+const modalImg = document.getElementById("modalImg");
+const modalName = document.getElementById("modalName");
+const closeModal = document.getElementById("closeModal");
+
+let scale = 1;
+let startY = 0;
+
+function initLazy() {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.src = img.dataset.src;
+        observer.unobserve(img);
+      }
+    });
+  });
+
+  document.querySelectorAll("img[data-src]").forEach(img => {
+    observer.observe(img);
+  });
+}
+
+async function fetchWithCache(path) {
+  const key = "gallery_" + path;
+  const cache = localStorage.getItem(key);
+  if (cache) return JSON.parse(cache);
+
+  const res = await fetch(
+    `https://api.github.com/repos/${username}/${repo}/contents/${path}`
+  );
+  const data = await res.json();
+  localStorage.setItem(key, JSON.stringify(data));
+  return data;
+}
+
+async function loadFolder(path) {
+  gallery.innerHTML = "";
+  const data = await fetchWithCache(path);
+
+  data.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    if (item.type === "dir") {
+      card.innerHTML = `
+        <img src="https://cdn-icons-png.flaticon.com/512/716/716784.png">
+        <div class="name">${item.name}</div>
+      `;
+      card.onclick = () => {
+        title.textContent = item.name;
+        backBtn.style.display = "block";
+        loadFolder(item.path);
+      };
+    }
+
+    if (item.type === "file" && item.name.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
+      card.innerHTML = `
+        <img data-src="${item.download_url}">
+        <div class="name">${item.name}</div>
+      `;
+
+      card.onclick = () => openModal(item.download_url, item.name);
+    }
+
+    gallery.appendChild(card);
+    setTimeout(() => card.classList.add("show"), 30);
+  });
+
+  initLazy();
+}
+
+function openModal(src, name) {
+  modal.style.display = "flex";
+  modalImg.src = src;
+  modalName.textContent = name;
+  scale = 1;
+  modalImg.style.transform = "scale(1)";
+}
+
+closeModal.onclick = () => modal.style.display = "none";
+
+modal.addEventListener("touchstart", e => {
+  startY = e.touches[0].clientY;
+});
+
+modal.addEventListener("touchmove", e => {
+  const diff = e.touches[0].clientY - startY;
+  if (diff > 100) modal.style.display = "none";
+});
+
+modalImg.addEventListener("dblclick", () => {
+  scale = scale === 1 ? 2 : 1;
+  modalImg.style.transform = `scale(${scale})`;
+});
+
+backBtn.onclick = () => {
+  title.textContent = "Gallery";
+  backBtn.style.display = "none";
+  loadFolder(basePath);
+};
+
+loadFolder(basePath);
+</script>
+
+</body>
+  </html>
