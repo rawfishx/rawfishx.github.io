@@ -2,234 +2,149 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Gallery</title>
-
+<title>UGC Settings Editor (Clean Version)</title>
+<script src="https://cdn.jsdelivr.net/npm/protobufjs@7.2.5/dist/protobuf.min.js"></script>
 <style>
-:root {
-  --bg: #0f0f0f;
-  --card: #1a1a1a;
-}
-
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: var(--bg);
-  color: white;
-  -webkit-tap-highlight-color: transparent;
-}
-
-header {
-  padding: 15px;
-  font-size: 18px;
-  font-weight: 600;
-  position: sticky;
-  top: 0;
-  background: var(--bg);
-  z-index: 10;
-}
-
-#backBtn {
-  display: none;
-  margin: 10px 15px;
-  padding: 8px 12px;
-  background: #222;
-  border: none;
-  color: white;
-  border-radius: 8px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  padding: 8px;
-}
-
-.card {
-  background: var(--card);
-  border-radius: 12px;
-  overflow: hidden;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: 0.3s ease;
-}
-
-.card.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.card img {
-  width: 100%;
-  aspect-ratio: 1/1;
-  object-fit: cover;
-  display: block;
-}
-
-.name {
-  font-size: 11px;
-  padding: 4px;
-  text-align: center;
-}
-
-/* Modal Fullscreen */
-#modal {
-  position: fixed;
-  inset: 0;
-  background: black;
-  display: none;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  touch-action: none;
-}
-
-#modal img {
-  max-width: 100%;
-  max-height: 85%;
-  transition: transform 0.2s ease;
-}
-
-#modalName {
-  padding: 10px;
-  font-size: 14px;
-}
-
-#closeModal {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  font-size: 26px;
-}
+body { font-family: sans-serif; background:#f4f4f4; padding:20px; }
+.section { background:white; padding:15px; margin-bottom:15px; border-radius:8px; }
+.setting { margin-bottom:10px; }
+button { padding:10px 20px; }
 </style>
 </head>
 <body>
 
-<header id="title">Gallery</header>
-<button id="backBtn">← Kembali</button>
-<div class="grid" id="gallery"></div>
+<h2>UGC Settings Editor</h2>
 
-<div id="modal">
-  <div id="closeModal">✕</div>
-  <img id="modalImg">
-  <div id="modalName"></div>
-</div>
+<input type="file" id="fileInput">
+<div id="settings"></div>
+<button id="downloadBtn" style="display:none;">Save & Download</button>
 
 <script>
-const username = "rawfishx";
-const repo = "rawfishx.github.io";
-const basePath = "photos";
 
-const gallery = document.getElementById("gallery");
-const title = document.getElementById("title");
-const backBtn = document.getElementById("backBtn");
+const settingsMetadata = /* paste metadata kamu di sini */;
 
-const modal = document.getElementById("modal");
-const modalImg = document.getElementById("modalImg");
-const modalName = document.getElementById("modalName");
-const closeModal = document.getElementById("closeModal");
+const protoSchema = `syntax="proto3";
+message UGCProjectData{
+bytes graph_editor_project=1;
+bytes workflow_editor_project=2;
+bytes entity_editor_project=3;
+bytes hud_editor_project=4;
+bytes map_editor_project=5;
+Root ShahGCreator=6;
+uint64 author_uid=7;
+bytes custom_resources_package=8;
+bytes timeline_editor_project=9;
+bytes user_custom_event_editor_project=10;
+int32 compatible_version=999;
+int32 public_version=1000;
+}
+message Root{
+repeated SettingsWrapper settings=1;
+int32 version=3;
+}
+message SettingsWrapper{
+repeated Settings settings=1;
+}
+message Settings{
+int32 id=1;
+bool enable=2;
+int32 value=3;
+float ratio=4;
+}`;
 
-let scale = 1;
-let startY = 0;
+let UGCProjectDataType;
+let originalMessage = null;
+let originalFileName = "";
 
-function initLazy() {
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const img = entry.target;
-        img.src = img.dataset.src;
-        observer.unobserve(img);
-      }
+const root = protobuf.parse(protoSchema).root;
+UGCProjectDataType = root.lookupType("UGCProjectData");
+
+document.getElementById("fileInput").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    originalFileName = file.name;
+
+    const reader = new FileReader();
+    reader.onload = ev => {
+        try {
+            originalMessage = UGCProjectDataType.decode(new Uint8Array(ev.target.result));
+            renderSettings();
+            document.getElementById("downloadBtn").style.display = "block";
+        } catch(err){
+            alert("Decode error: " + err.message);
+        }
+    };
+    reader.readAsArrayBuffer(file);
+});
+
+function renderSettings(){
+    const container = document.getElementById("settings");
+    container.innerHTML = "";
+
+    if (!originalMessage.ShahGCreator.settings.length) {
+        originalMessage.ShahGCreator.settings.push({ settings: [] });
+    }
+
+    const fileSettings = originalMessage.ShahGCreator.settings[0].settings;
+
+    settingsMetadata.forEach(meta => {
+
+        let data = fileSettings.find(s => s.id === meta.ID);
+        if (!data) {
+            data = { id: meta.ID, enable:false, value:0, ratio:0 };
+            fileSettings.push(data);
+        }
+
+        const div = document.createElement("div");
+        div.className = "section setting";
+
+        if (meta.Type === "boolean") {
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" id="field_${meta.ID}" ${data.enable ? "checked":""}>
+                    ${meta.Name}
+                </label>
+            `;
+        } else {
+            const val = meta.Type === "float" ? data.ratio : data.value;
+            div.innerHTML = `
+                <label>${meta.Name}</label><br>
+                <input type="number" id="field_${meta.ID}" value="${val}" step="${meta.Type==="float"?"0.01":"1"}">
+            `;
+        }
+
+        container.appendChild(div);
     });
-  });
-
-  document.querySelectorAll("img[data-src]").forEach(img => {
-    observer.observe(img);
-  });
 }
 
-async function fetchWithCache(path) {
-  const key = "gallery_" + path;
-  const cache = localStorage.getItem(key);
-  if (cache) return JSON.parse(cache);
+document.getElementById("downloadBtn").addEventListener("click", () => {
 
-  const res = await fetch(
-    `https://api.github.com/repos/${username}/${repo}/contents/${path}`
-  );
-  const data = await res.json();
-  localStorage.setItem(key, JSON.stringify(data));
-  return data;
-}
+    const fileSettings = originalMessage.ShahGCreator.settings[0].settings;
 
-async function loadFolder(path) {
-  gallery.innerHTML = "";
-  const data = await fetchWithCache(path);
+    settingsMetadata.forEach(meta => {
+        const el = document.getElementById(`field_${meta.ID}`);
+        if (!el) return;
 
-  data.forEach(item => {
-    const card = document.createElement("div");
-    card.className = "card";
+        const target = fileSettings.find(s => s.id === meta.ID);
 
-    if (item.type === "dir") {
-      card.innerHTML = `
-        <img src="https://cdn-icons-png.flaticon.com/512/716/716784.png">
-        <div class="name">${item.name}</div>
-      `;
-      card.onclick = () => {
-        title.textContent = item.name;
-        backBtn.style.display = "block";
-        loadFolder(item.path);
-      };
-    }
+        if (meta.Type === "boolean") {
+            target.enable = el.checked;
+        } else if (meta.Type === "float") {
+            target.ratio = parseFloat(el.value);
+        } else {
+            target.value = parseInt(el.value);
+        }
+    });
 
-    if (item.type === "file" && item.name.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
-      card.innerHTML = `
-        <img data-src="${item.download_url}">
-        <div class="name">${item.name}</div>
-      `;
+    const buffer = UGCProjectDataType.encode(originalMessage).finish();
+    const blob = new Blob([buffer], { type: "application/octet-stream" });
 
-      card.onclick = () => openModal(item.download_url, item.name);
-    }
-
-    gallery.appendChild(card);
-    setTimeout(() => card.classList.add("show"), 30);
-  });
-
-  initLazy();
-}
-
-function openModal(src, name) {
-  modal.style.display = "flex";
-  modalImg.src = src;
-  modalName.textContent = name;
-  scale = 1;
-  modalImg.style.transform = "scale(1)";
-}
-
-closeModal.onclick = () => modal.style.display = "none";
-
-modal.addEventListener("touchstart", e => {
-  startY = e.touches[0].clientY;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = originalFileName || "modified.bytes";
+    a.click();
 });
 
-modal.addEventListener("touchmove", e => {
-  const diff = e.touches[0].clientY - startY;
-  if (diff > 100) modal.style.display = "none";
-});
-
-modalImg.addEventListener("dblclick", () => {
-  scale = scale === 1 ? 2 : 1;
-  modalImg.style.transform = `scale(${scale})`;
-});
-
-backBtn.onclick = () => {
-  title.textContent = "Gallery";
-  backBtn.style.display = "none";
-  loadFolder(basePath);
-};
-
-loadFolder(basePath);
 </script>
-
 </body>
-  </html>
+</html>
