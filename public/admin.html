@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Snake Mania</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="admin-page">
+    <div class="container">
+        <header>
+            <h1>🔧 Admin Panel</h1>
+            <a href="index.html" class="back-btn">← Home</a>
+        </header>
+
+        <main>
+            <div class="admin-card">
+                <h2>Login Admin</h2>
+                <form id="adminLogin">
+                    <input type="password" id="adminPass" placeholder="Password Admin" required>
+                    <button type="submit">Masuk</button>
+                </form>
+
+                <div id="adminPanel" class="hidden">
+                    <h3>Panel Admin</h3>
+                    <div class="admin-actions">
+                        <button onclick="resetLeaderboard()">🗑️ Reset Leaderboard</button>
+                        <button onclick="downloadUsers()">📥 Download Users</button>
+                        <button onclick="clearLocalStorage()">🧹 Clear All Data</button>
+                    </div>
+                    <div id="adminStats">
+                        <h4>Statistik</h4>
+                        <p>Total Players: <span id="totalPlayers">0</span></p>
+                        <p>High Score: <span id="adminHighScore">0</span></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const ADMIN_PASSWORD = "admin123"; // Ganti dengan password yang diinginkan
+        
+        document.getElementById('adminLogin').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const password = document.getElementById('adminPass').value;
+            if (password === ADMIN_PASSWORD) {
+                document.getElementById('adminPanel').classList.remove('hidden');
+                loadAdminStats();
+            } else {
+                alert('❌ Password salah!');
+            }
+        });
+
+        function loadAdminStats() {
+            document.getElementById('totalPlayers').textContent = 
+                JSON.parse(localStorage.getItem('snakeScores') || '[]').length;
+            document.getElementById('adminHighScore').textContent = 
+                localStorage.getItem('snakeHighScore') || 0;
+        }
+
+        function resetLeaderboard() {
+            if (confirm('Yakin reset leaderboard?')) {
+                localStorage.removeItem('snakeHighScore');
+                localStorage.removeItem('snakeScores');
+                alert('✅ Leaderboard direset!');
+                loadAdminStats();
+            }
+        }
+
+        function downloadUsers() {
+            const scores = JSON.parse(localStorage.getItem('snakeScores') || '[]');
+            const data = scores.map(s => `${s.name},${s.score},${s.date}`).join('\n');
+            const blob = new Blob([data], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'users.txt';
+            a.click();
+        }
+
+        function clearLocalStorage() {
+            if (confirm('Yakin hapus semua data?')) {
+                localStorage.clear();
+                alert('✅ Semua data dihapus!');
+                loadAdminStats();
+            }
+        }
+    </script>
+</body>
+  </html>
