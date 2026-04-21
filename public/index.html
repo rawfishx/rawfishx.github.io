@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐍 Snake Game Online</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐍</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐍 Snake Mania</h1>
+            <nav>
+                <a href="login.html">Login</a>
+                <a href="leaderboard.html">Leaderboard</a>
+                <a href="game.html">Main Game</a>
+                <a href="admin.html" class="admin-btn">Admin</a>
+            </nav>
+        </header>
+
+        <main>
+            <div class="hero">
+                <h2>Selamat Datang di Snake Mania!</h2>
+                <p>Makan makanan sebanyak mungkin dan hindari dinding!</p>
+                <div class="stats">
+                    <div class="stat">
+                        <span id="highScore">0</span>
+                        <small>High Score</small>
+                    </div>
+                </div>
+                <a href="game.html" class="play-btn">🎮 Main Sekarang</a>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 Snake Mania. Dibuat dengan ❤️ untuk Vercel</p>
+        </footer>
+    </div>
+
+    <script>
+        // Load high score
+        function loadHighScore() {
+            const highScore = localStorage.getItem('snakeHighScore') || 0;
+            document.getElementById('highScore').textContent = highScore;
+        }
+        loadHighScore();
+    </script>
+</body>
+</html>
