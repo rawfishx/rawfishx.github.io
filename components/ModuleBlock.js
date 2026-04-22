@@ -1,3 +1,4 @@
+import { useState } from 'react';
 const ModuleBlock = ({ modules, onAddModule }) => {
   const [newModuleName, setNewModuleName] = useState('');
 
