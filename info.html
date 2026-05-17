@@ -1,124 +1,274 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Browser Info Test</title>
-  <style>
-    body {
-      background: #111;
-      color: #eee;
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced Fingerprint Test</title>
+<style>
+body {
+    background: #0f0f0f;
+    color: #eaeaea;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
 
-    h1 {
-      color: #00ff99;
-    }
+h1 {
+    color: #00ff99;
+}
 
-    .box {
-      background: #1e1e1e;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 15px;
-      overflow-wrap: break-word;
-    }
+.box {
+    background: #1b1b1b;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    word-break: break-word;
+    border: 1px solid #333;
+}
 
-    code {
-      color: #00ffaa;
-    }
-  </style>
+code {
+    color: #00ffaa;
+    white-space: pre-wrap;
+}
+</style>
 </head>
 <body>
 
-<h1>Browser Information Test</h1>
-<p>Halaman ini menampilkan informasi yang bisa diakses website dari browser kamu.</p>
-
+<h1>Advanced Browser Fingerprint Test</h1>
 <div id="output"></div>
 
 <script>
-  const data = {
-    userAgent: navigator.userAgent,
-    platform: navigator.platform,
-    language: navigator.language,
-    languages: navigator.languages,
-    cookieEnabled: navigator.cookieEnabled,
-    online: navigator.onLine,
-    hardwareConcurrency: navigator.hardwareConcurrency,
-    deviceMemory: navigator.deviceMemory || "Tidak tersedia",
-    screenWidth: screen.width,
-    screenHeight: screen.height,
-    colorDepth: screen.colorDepth,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    url: location.href,
-    referrer: document.referrer || "Tidak ada",
-    touchSupport: ('ontouchstart' in window),
-    doNotTrack: navigator.doNotTrack,
-  };
+const output = document.getElementById('output');
 
-  const output = document.getElementById('output');
-
-  for (const key in data) {
+function addBox(title, value) {
     const div = document.createElement('div');
     div.className = 'box';
 
-    let value = data[key];
-
     if (typeof value === 'object') {
-      value = JSON.stringify(value, null, 2);
+        value = JSON.stringify(value, null, 2);
     }
 
     div.innerHTML = `
-      <b>${key}</b><br>
-      <code>${value}</code>
+        <b>${title}</b><br>
+        <code>${value}</code>
     `;
 
     output.appendChild(div);
-  }
+}
 
-  // Tes Canvas Fingerprint sederhana
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+// BASIC INFO
+addBox('User Agent', navigator.userAgent);
+addBox('Platform', navigator.platform);
+addBox('Language', navigator.language);
+addBox('Languages', navigator.languages);
+addBox('Cookies Enabled', navigator.cookieEnabled);
+addBox('Online', navigator.onLine);
+addBox('Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
+addBox('Do Not Track', navigator.doNotTrack);
 
-  ctx.textBaseline = 'top';
-  ctx.font = '16px Arial';
-  ctx.fillStyle = '#f60';
-  ctx.fillRect(10, 10, 100, 40);
-  ctx.fillStyle = '#069';
-  ctx.fillText('Fingerprint Test', 15, 15);
+// HARDWARE
+addBox('CPU Threads', navigator.hardwareConcurrency);
+addBox('Device Memory (GB)', navigator.deviceMemory || 'Tidak tersedia');
+addBox('Max Touch Points', navigator.maxTouchPoints);
 
-  const fingerprint = canvas.toDataURL();
+// SCREEN
+addBox('Screen Resolution', `${screen.width} x ${screen.height}`);
+addBox('Available Screen', `${screen.availWidth} x ${screen.availHeight}`);
+addBox('Color Depth', screen.colorDepth);
+addBox('Pixel Ratio', window.devicePixelRatio);
 
-  const fpDiv = document.createElement('div');
-  fpDiv.className = 'box';
-  fpDiv.innerHTML = `
-    <b>Canvas Fingerprint</b><br>
-    <code>${fingerprint.substring(0, 120)}...</code>
-  `;
+// URL INFO
+addBox('Current URL', location.href);
+addBox('Referrer', document.referrer || 'Tidak ada');
 
-  output.appendChild(fpDiv);
+// STORAGE TEST
+addBox('LocalStorage Available', !!window.localStorage);
+addBox('SessionStorage Available', !!window.sessionStorage);
+addBox('IndexedDB Available', !!window.indexedDB);
 
-  // WebGL Renderer Test
-  try {
-    const glCanvas = document.createElement('canvas');
-    const gl = glCanvas.getContext('webgl');
+// MEDIA DEVICES
+if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+    navigator.mediaDevices.enumerateDevices()
+    .then(devices => {
+        const simplified = devices.map(d => ({
+            kind: d.kind,
+            label: d.label || '(izin belum diberikan)',
+            deviceId: d.deviceId ? '[hidden]' : null
+        }));
+
+        addBox('Media Devices', simplified);
+    })
+    .catch(err => {
+        addBox('Media Devices Error', err.message);
+    });
+}
+
+// BATTERY
+if (navigator.getBattery) {
+    navigator.getBattery().then(battery => {
+        addBox('Battery Info', {
+            charging: battery.charging,
+            level: battery.level,
+            chargingTime: battery.chargingTime,
+            dischargingTime: battery.dischargingTime
+        });
+    });
+}
+
+// CANVAS FINGERPRINT
+function canvasFingerprint() {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    ctx.textBaseline = 'top';
+    ctx.font = '16px Arial';
+    ctx.fillStyle = '#f60';
+    ctx.fillRect(125,1,62,20);
+    ctx.fillStyle = '#069';
+    ctx.fillText('Fingerprint_Test_123', 2, 15);
+    ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+    ctx.fillText('BrowserCheck', 4, 17);
+
+    return canvas.toDataURL();
+}
+
+addBox('Canvas Fingerprint', canvasFingerprint().substring(0, 300) + '...');
+
+// AUDIO FINGERPRINT
+try {
+    const audioCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 44100, 44100);
+    const oscillator = audioCtx.createOscillator();
+    const compressor = audioCtx.createDynamicsCompressor();
+
+    oscillator.type = 'triangle';
+    oscillator.frequency.value = 10000;
+
+    oscillator.connect(compressor);
+    compressor.connect(audioCtx.destination);
+
+    oscillator.start(0);
+
+    audioCtx.startRendering();
+
+    audioCtx.oncomplete = function(e) {
+        let fingerprint = 0;
+        const data = e.renderedBuffer.getChannelData(0);
+
+        for (let i = 0; i < data.length; i += 100) {
+            fingerprint += Math.abs(data[i]);
+        }
+
+        addBox('Audio Fingerprint', fingerprint);
+    };
+} catch (e) {
+    addBox('Audio Fingerprint Error', e.message);
+}
+
+// WEBGL
+try {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl');
 
     const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
 
-    const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
     const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+    const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
 
-    const glDiv = document.createElement('div');
-    glDiv.className = 'box';
-    glDiv.innerHTML = `
-      <b>WebGL Info</b><br>
-      <code>Vendor: ${vendor}<br>Renderer: ${renderer}</code>
-    `;
+    addBox('WebGL Vendor', vendor);
+    addBox('WebGL Renderer', renderer);
 
-    output.appendChild(glDiv);
-  } catch (e) {
-    console.log('WebGL tidak tersedia');
-  }
+} catch (e) {
+    addBox('WebGL Error', e.message);
+}
+
+// FONTS TEST
+const testFonts = [
+    'Arial',
+    'Verdana',
+    'Tahoma',
+    'Courier New',
+    'Times New Roman',
+    'Comic Sans MS',
+    'Roboto'
+];
+
+const detectedFonts = [];
+
+const span = document.createElement('span');
+span.style.fontSize = '72px';
+span.innerHTML = 'mmmmmmmmmmlli';
+const defaultWidth = document.body.appendChild(span).offsetWidth;
+document.body.removeChild(span);
+
+for (const font of testFonts) {
+    const s = document.createElement('span');
+    s.style.fontFamily = font;
+    s.style.fontSize = '72px';
+    s.innerHTML = 'mmmmmmmmmmlli';
+
+    document.body.appendChild(s);
+
+    if (s.offsetWidth !== defaultWidth) {
+        detectedFonts.push(font);
+    }
+
+    document.body.removeChild(s);
+}
+
+addBox('Detected Fonts', detectedFonts);
+
+// NETWORK INFO
+if (navigator.connection) {
+    addBox('Network Info', {
+        effectiveType: navigator.connection.effectiveType,
+        downlink: navigator.connection.downlink,
+        rtt: navigator.connection.rtt,
+        saveData: navigator.connection.saveData
+    });
+}
+
+// PERMISSIONS
+if (navigator.permissions) {
+    const permissions = [
+        'camera',
+        'microphone',
+        'geolocation',
+        'notifications'
+    ];
+
+    permissions.forEach(name => {
+        navigator.permissions.query({ name })
+        .then(result => {
+            addBox(`Permission: ${name}`, result.state);
+        })
+        .catch(() => {});
+    });
+}
+
+// SIMPLE UNIQUE HASH
+function generateHash() {
+    const raw = [
+        navigator.userAgent,
+        navigator.language,
+        screen.width,
+        screen.height,
+        navigator.hardwareConcurrency,
+        navigator.deviceMemory,
+        Intl.DateTimeFormat().resolvedOptions().timeZone
+    ].join('|');
+
+    let hash = 0;
+
+    for (let i = 0; i < raw.length; i++) {
+        const chr = raw.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
+        hash |= 0;
+    }
+
+    return hash;
+}
+
+addBox('Simple Browser Hash', generateHash());
+
 </script>
 
 </body>
