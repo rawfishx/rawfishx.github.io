@@ -2,58 +2,241 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Multiplayer Chat + Canvas</title>
+<title>Chat + Canvas + Guestbook Multiplayer</title>
 
 <style>
-body { font-family: Arial; background:#111; color:white; margin:0; }
-#chat { height:200px; overflow:auto; border:1px solid #333; padding:10px; }
-.msg { margin:5px 0; padding:5px; background:#222; border-radius:5px; }
-
-#canvas {
-  border:1px solid #555;
-  background:white;
-  display:block;
-  margin-top:10px;
+/* WARNA DASAR & RESET */
+:root {
+  --bg-content: #1a1a1a;
+  --bg-item: #252525;
+  --primary: #00d2ff;
+  --text: #f0f0f0;
 }
 
-.toolbar {
-  display:flex;
-  gap:10px;
-  padding:10px;
-  background:#222;
+body {
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  background: #0f0f0f;
+  color: var(--text);
+  margin: 0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
+h2 { margin: 0 0 20px 0; font-weight: 300; letter-spacing: 1px; }
+h2 span { color: var(--primary); font-weight: bold; }
+
+/* KONTAINER UTAMA */
+.container {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* AREA CHAT */
+.panel {
+  background: var(--bg-content);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  border: 1px solid #333;
+}
+
+#chat {
+  height: 180px;
+  overflow-y: auto;
+  padding: 10px;
+  background: #111;
+  border-radius: 8px;
+  border: 1px solid #333;
+  margin-bottom: 10px;
+}
+
+.msg { 
+  margin-bottom: 8px; 
+  padding: 6px 10px; 
+  background: #222; 
+  border-radius: 6px; 
+  font-size: 0.9rem;
+  animation: slideIn 0.2s ease;
+}
+.msg strong { color: var(--primary); }
+
+.input-group { display: flex; gap: 8px; }
+input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background: #222;
+  color: white;
+  outline: none;
+}
+input:focus { border-color: var(--primary); }
+
+/* TOOLBAR CANVAS */
+.toolbar-canvas {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #222;
+  padding: 8px;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 1px solid #333;
+}
+
+.colors { display: flex; gap: 8px; }
 .color {
-  width:25px;
-  height:25px;
-  border-radius:50%;
-  cursor:pointer;
-  border:2px solid white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.2);
+  transition: transform 0.1s;
 }
+.color:hover { transform: scale(1.2); border-color: white; }
+
+.tools-group { display: flex; gap: 8px; }
+.btn-icon {
+  background: #333;
+  color: #ccc;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.btn-icon:hover { background: #444; color: white; }
+
+/* CANVAS AREA */
+canvas {
+  background: white;
+  display: block;
+  border-radius: 0 0 8px 8px;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+/* AREA GUESTBOOK (VIEW POERT) */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.tab {
+  padding: 8px 16px;
+  background: #222;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #888;
+  transition: 0.3s;
+  border: 1px solid transparent;
+}
+.tab.active {
+  background: #333;
+  color: var(--primary);
+  border-color: var(--primary);
+  font-weight: bold;
+}
+
+/* CONTENT SWITCHING */
+.content-view { display: none; }
+.content-view.active { display: block; }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* BUTTONS */
+button {
+  background: var(--primary);
+  color: #000;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+button:hover { opacity: 0.9; }
+
 </style>
 </head>
 
 <body>
 
-<h2>💬 Chat + 🎨 Canvas Multiplayer</h2>
+<h2>Chat <span>+</span> Canvas <span>+</span> Guestbook</h2>
 
-<div id="chat"></div>
-
-<input id="name" placeholder="nama kamu">
-<input id="msg" placeholder="chat...">
-<button onclick="send()">Kirim</button>
-
-<!-- TOOLBAR DRAW -->
-<div class="toolbar">
-  <div class="color" style="background:black" onclick="setColor('black')"></div>
-  <div class="color" style="background:red" onclick="setColor('red')"></div>
-  <div class="color" style="background:blue" onclick="setColor('blue')"></div>
-  <div class="color" style="background:green" onclick="setColor('green')"></div>
-  <div class="color" style="background:purple" onclick="setColor('purple')"></div>
-  <button onclick="setErase()">🧽 Eraser</button>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('chat-view')">💬 Chat</div>
+  <div class="tab" onclick="switchTab('canvas-view')">🎨 Canvas</div>
+  <div class="tab" onclick="switchTab('guestbook-view')">📖 View Poert</div>
 </div>
 
-<canvas id="canvas" width="350" height="350"></canvas>
+<div class="container">
+
+  <!-- 1. CHAT VIEW -->
+  <div id="chat-view" class="content-view active">
+    <div class="panel">
+      <div id="chat"></div>
+      <div class="input-group">
+        <input id="name" placeholder="Nama kamu..." value="Player">
+        <input id="msg" placeholder="Ketik pesan..." onkeypress="handleEnter(event)">
+        <button onclick="sendChat()">Kirim</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. CANVAS VIEW -->
+  <div id="canvas-view" class="content-view">
+    <div class="panel" style="padding: 0; overflow: hidden;">
+      <div class="toolbar-canvas">
+        <div class="colors">
+          <div class="color" style="background:#000" onclick="setColor('#000')"></div>
+          <div class="color" style="background:#ff0000" onclick="setColor('#ff0000')"></div>
+          <div class="color" style="background:#00d2ff" onclick="setColor('#00d2ff')"></div>
+          <div class="color" style="background:#00ff00" onclick="setColor('#00ff00')"></div>
+          <div class="color" style="background:#ffff00" onclick="setColor('#ffff00')"></div>
+        </div>
+        <div class="tools-group">
+          <select id="size" onchange="setSize(this.value)" style="background:#333; color:white; border:none; padding:4px;">
+            <option value="2">Kecil</option>
+            <option value="5" selected>Sedang</option>
+            <option value="10">Besar</option>
+          </select>
+          <button class="btn-icon" onclick="toggleEraser()">🧽</button>
+          <button class="btn-icon" onclick="clearCanvas()">🗑️ Clear</button>
+          <button class="btn-icon" onclick="downloadCanvas()">💾 Save</button>
+        </div>
+      </div>
+      <canvas id="canvas" width="600" height="400"></canvas>
+    </div>
+  </div>
+
+  <!-- 3. GUESTBOOK (VIEW POERT) VIEW -->
+  <div id="guestbook-view" class="content-view">
+    <div class="panel">
+      <h3 style="margin-top:0;">Buku Tamu</h3>
+      <p style="color:#888; font-size:0.9rem;">Tulis pesan untuk kenangan! ✍️</p>
+      
+      <div id="guestbook-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px; border-top: 1px solid #333; padding-top: 10px;">
+        <!-- Data Guestbook akan muncul di sini -->
+        <div style="text-align:center; color:#555;">Memuat buku tamu...</div>
+      </div>
+
+      <div class="input-group">
+        <input id="gb-name" placeholder="Nama...">
+        <input id="gb-msg" placeholder="Pesan untukku...">
+        <button onclick="signGuestbook()">Sign</button>
+      </div>
+    </div>
+  </div>
+
+</div>
 
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -63,109 +246,161 @@ const supabase = createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4YmVxa25jeXFmcWFqcGhvYWdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0OTcyODcsImV4cCI6MjA5NjA3MzI4N30.2oqWj2qMzIrOf4fh3oJmNeK4bGpeHH1GRGKDd1jMI6U"
 );
 
-/* ================= CHAT ================= */
+/* ================= CHAT LOGIC ================= */
 const chatBox = document.getElementById("chat");
 
+// Load Chat Lama
 async function loadChat() {
-  let { data } = await supabase
-    .from("messages")
-    .select("*")
-    .order("id", { ascending: true });
-
-  data.forEach(addMessage);
+  let { data } = await supabase.from("messages").select("*").order("id", { ascending: false }).limit(20);
+  if(data) {
+    chatBox.innerHTML = "";
+    data.reverse().forEach(addMessage);
+  }
 }
 loadChat();
 
-supabase
-  .channel("chat")
-  .on("postgres_changes",
-  { event: "INSERT", schema: "public", table: "messages" },
-  (payload) => addMessage(payload.new))
-  .subscribe();
+// Realtime Chat
+supabase.channel("r-chat").on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (p) => addMessage(p.new)).subscribe();
 
 function addMessage(m) {
   const div = document.createElement("div");
   div.className = "msg";
-  div.innerText = `${m.name}: ${m.text}`;
+  div.innerHTML = `<strong>${m.name}:</strong> ${m.text}`;
   chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-/* ================= DRAW CANVAS ================= */
+window.sendChat = async function() {
+  const name = document.getElementById("name").value || "Anon";
+  const text = document.getElementById("msg").value;
+  if(!text) return;
+  await supabase.from("messages").insert([{ name, text }]);
+  document.getElementById("msg").value = "";
+}
 
+function handleEnter(e) { if(e.key === 'Enter') sendChat(); }
+
+
+/* ================= CANVAS LOGIC ================= */
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+let isDrawing = false;
+let currentColor = "#000";
+let currentSize = 5;
+let isEraser = false;
 
-let drawing = false;
-let color = "black";
-let size = 3;
+canvas.addEventListener("mousedown", (e) => {
+  isDrawing = true;
+  draw(e);
+});
+canvas.addEventListener("mouseup", () => isDrawing = false);
+canvas.addEventListener("mousemove", (e) => { if(isDrawing) draw(e); });
 
-/* start draw */
-canvas.addEventListener("mousedown", () => drawing = true);
-canvas.addEventListener("mouseup", () => drawing = false);
-canvas.addEventListener("mouseleave", () => drawing = false);
-
-canvas.addEventListener("mousemove", async (e) => {
-  if (!drawing) return;
-
+function draw(e) {
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
-
-  draw(x, y, color, size);
-
-  await supabase.from("drawings").insert([{
-    x, y, color, size, type: "draw"
-  }]);
-});
-
-function draw(x, y, c, s) {
-  ctx.fillStyle = c;
+  
   ctx.beginPath();
-  ctx.arc(x, y, s, 0, Math.PI * 2);
+  ctx.arc(x, y, currentSize, 0, Math.PI * 2);
+  ctx.fillStyle = isEraser ? "#fff" : currentColor;
   ctx.fill();
+
+  // Simpan ke database realtime
+  supabase.from("drawings").insert([{ 
+    x, y, 
+    color: isEraser ? "#ffffff" : currentColor, 
+    size: currentSize,
+    type: isEraser ? "erase" : "draw",
+    session_id: "main-session" // Boleh dihapus kalo mau buat multiplayer sederhana
+  }]);
 }
 
-/* realtime drawing */
-supabase
-  .channel("draw")
-  .on("postgres_changes",
-  { event: "INSERT", schema: "public", table: "drawings" },
-  (payload) => {
-    const d = payload.new;
+// Realtime Drawing (Ambil dari user lain)
+supabase.channel("r-draw").on("postgres_changes", { event: "INSERT", schema: "public", table: "drawings" }, (p) => {
+  const d = p.new;
+  // Hindari nggambar diri sendiri (opsional)
+  // if(d.session_id === "main-session") return; 
+  
+  ctx.beginPath();
+  ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2);
+  ctx.fillStyle = d.type === "erase" ? "#fff" : d.color;
+  ctx.fill();
+}).subscribe();
 
-    if (d.type === "draw") {
-      draw(d.x, d.y, d.color, d.size);
-    } else if (d.type === "erase") {
-      draw(d.x, d.y, "white", d.size * 2);
-    }
-  })
-  .subscribe();
-
-/* tools */
-window.setColor = (c) => {
-  color = c;
-  size = 3;
+// Tools Functions
+window.setColor = (c) => { currentColor = c; isEraser = false; }
+window.setSize = (s) => { currentSize = s; }
+window.toggleEraser = () => { isEraser = !isEraser; }
+window.clearCanvas = async () => {
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  await supabase.from("drawings").delete().neq("id", 0); // Hapus semua di DB (hati-hati di production)
 };
+window.downloadCanvas = () => {
+  const link = document.createElement('a');
+  link.download = 'my-art.png';
+  link.href = canvas.toDataURL();
+  link.click();
+}
 
-window.setErase = () => {
-  color = "white";
-  size = 10;
-};
 
-/* ================= CHAT SEND ================= */
-window.send = async function () {
-  const name = document.getElementById("name").value || "anon";
-  const text = document.getElementById("msg").value;
+/* ================= GUESTBOOK (VIEW POERT) LOGIC ================= */
+const gbList = document.getElementById("guestbook-list");
 
-  if (!text) return;
+async function loadGuestbook() {
+  let { data } = await supabase.from("guestbook").select("*").order("id", { ascending: false });
+  if(data) renderGuestbook(data);
+}
+loadGuestbook();
 
-  await supabase.from("messages").insert([
-    { name, text }
-  ]);
+// Realtime Guestbook
+supabase.channel("r-gb").on("postgres_changes", { event: "INSERT", schema: "public", table: "guestbook" }, (p) => {
+  // Append ke paling atas
+  const div = document.createElement("div");
+  div.className = "msg";
+  div.innerHTML = `<strong>${p.new.name}</strong>: ${p.new.message}<br><small style="color:#666">${new Date(p.new.created_at).toLocaleString()}</small>`;
+  if(gbList.firstChild) gbList.insertBefore(div, gbList.firstChild);
+  else gbList.innerHTML = "";
+}).subscribe();
 
-  document.getElementById("msg").value = "";
-};
+function renderGuestbook(data) {
+  gbList.innerHTML = "";
+  data.forEach(m => {
+    const div = document.createElement("div");
+    div.className = "msg";
+    div.innerHTML = `<strong>${m.name}</strong>: ${m.message}<br><small style="color:#666">${new Date(m.created_at).toLocaleString()}</small>`;
+    gbList.appendChild(div);
+  });
+}
+
+window.signGuestbook = async function() {
+  const name = document.getElementById("gb-name").value || "Tamu";
+  const msg = document.getElementById("gb-msg").value;
+  if(!msg) return alert("Tulis pesan dulu!");
+  
+  await supabase.from("guestbook").insert([{ name, message: msg }]);
+  document.getElementById("gb-msg").value = "";
+}
+
+
+/* ================= TAB SWITCHING ================= */
+window.switchTab = (id) => {
+  // Hide all content
+  document.querySelectorAll(".content-view").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(el => el.classList.remove("active"));
+  
+  // Show selected
+  document.getElementById(id).classList.add("active");
+  // Highlight tab
+  const index = ["chat-view","canvas-view","guestbook-view"].indexOf(id);
+  document.querySelectorAll(".tab")[index].classList.add("active");
+}
+
+// Init Canvas White BG
+ctx.fillStyle = "white";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
 </script>
-
 </body>
 </html>
