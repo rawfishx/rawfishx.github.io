@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Music Library</title>
+<style>
+body{
+    background:#111;
+    color:white;
+    font-family:Arial;
+    max-width:700px;
+    margin:auto;
+    padding:20px;
+}
+a{
+    display:block;
+    margin:10px 0;
+    padding:12px;
+    background:#222;
+    color:white;
+    text-decoration:none;
+    border-radius:8px;
+}
+</style>
+</head>
+<body>
+
+<h1>🎵 Music Library</h1>
+
+<div id="music"></div>
+
+<script>
+const user = "rawfishx";
+const repo = "rawfishx.github.io";
+const path = "";
+
+fetch(`https://api.github.com/repos/${user}/${repo}/contents/${path}`)
+.then(r => r.json())
+.then(files => {
+
+    const music = document.getElementById("music");
+
+    files
+    .filter(file => file.name.toLowerCase().endsWith(".mp3"))
+    .forEach(file => {
+
+        const a = document.createElement("a");
+
+        a.href = file.download_url;
+        a.textContent = file.name.replace(".mp3","");
+
+        music.appendChild(a);
+    });
+
+});
+</script>
+
+</body>
+</html>
