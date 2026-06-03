@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Multiplayer Supabase</title>
+</head>
+<body>
+
+<h1 id="status">Waiting...</h1>
+<button onclick="klik()">CLICK</button>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+const supabaseUrl = "https://lxbeqkncyqfqajphoago.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4YmVxa25jeXFmcWFqcGhvYWdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0OTcyODcsImV4cCI6MjA5NjA3MzI4N30.2oqWj2qMzIrOf4fh3oJmNeK4bGpeHH1GRGKDd1jMI6U";
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// load awal
+async function load() {
+  const { data } = await supabase
+    .from("room")
+    .select("*")
+    .eq("id", 1)
+    .single();
+
+  document.getElementById("status").innerText =
+    data?.state ?? "empty";
+}
+
+load();
+
+// realtime
+supabase
+  .channel("room-channel")
+  .on(
+    "postgres_changes",
+    { event: "UPDATE", schema: "public", table: "room" },
+    (payload) => {
+      document.getElementById("status").innerText =
+        payload.new.state;
+    }
+  )
+  .subscribe();
+
+// klik event
+async function klik() {
+  await supabase
+    .from("room")
+    .update({
+      state: "Diklik: " + Date.now()
+    })
+    .eq("id", 1);
+}
+</script>
+
+</body>
+</html>
