@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal MTK SMPN 3 Ciasem - Belajar Matematika Lebih Mudah</title>
+    <style>
+        /* --- RESET & BASE STYLES --- */
+        :root {
+            --primary-color: #2563eb; /* Biru Muda */
+            --secondary-color: #1e40af; /* Biru Tua */
+            --accent-color: #f59e0b; /* Oranye */
+            --text-color: #334155;
+            --bg-color: #f8fafc;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        a { text-decoration: none; }
+        ul { list-style: none; }
+
+        /* --- NAVIGATION --- */
+        .navbar {
+            background-color: var(--white);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: var(--text-color);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .btn-daftar {
+            background-color: var(--accent-color);
+            color: var(--white);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .btn-daftar:hover {
+            background-color: #d97706;
+        }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4rem 5%;
+            background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+        }
+
+        .hero-content {
+            flex: 1;
+            padding-right: 2rem;
+        }
+
+        .hero-content h1 {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero-content p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            color: #475569;
+        }
+
+        .hero-image {
+            flex: 1;
+            text-align: center;
+        }
+
+        .hero-image img {
+            max-width: 100%;
+            height: auto;
+            /* Placeholder visual using CSS circle */
+            width: 300px;
+            height: 300px;
+            background-color: #bfdbfe;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: var(--white);
+        }
+
+        /* --- FEATURES --- */
+        .features {
+            padding: 4rem 5%;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            margin-bottom: 3rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        /* --- CURRICULUM --- */
+        .curriculum {
+            background-color: #e0f2fe;
+            padding: 4rem 5%;
+        }
+
+        .curriculum h2 {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: var(--secondary-color);
+        }
+
+        .class-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .class-card {
+            background: var(--white);
+            width: 300px;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .class-card h3 {
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+        }
+
+        .class-card ul {
+            list-style: disc;
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+
+        /* --- CTA SECTION --- */
+        .cta-section {
+            text-align: center;
+            padding: 4rem 5%;
+            background-color: var(--secondary-color);
+            color: var(--white);
+        }
+
+        .cta-section h2 {
+            margin-bottom: 1rem;
+        }
+
+        .btn-cta {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: var(--white);
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-cta:hover {
+            background-color: #d97706;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            background-color: #1e293b;
+            color: #94a3b8;
+            padding: 2rem 5%;
+            text-align: center;
+        }
+
+        /* --- MOBILE RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .hero-content {
+                padding-right: 0;
+                margin-bottom: 2rem;
+            }
+
+            .nav-links {
+                display: none; /* Simplifikasi menu di HP */
+            }
+
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">MTK SMPN 3 Ciasem</div>
+        <div class="nav-links">
+            <a href="#fitur">Keunggulan</a>
+            <a href="#materi">Materi</a>
+            <a href="#kontak">Kontak</a>
+        </div>
+        <a href="https://wa.me/628XXXXXXXXXX" class="btn-daftar">Gabung Kelas</a>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Kuasai Matematika SMPN 3 Ciasem Dengan Cara yang Menyenangkan!</h1>
+            <p>Platform belajar online khusus siswa SMPN 3 Ciasem. Materi易懂 (mudah dipahami), soal latihan terlengkap, dan tutor profesional siap membantu kamu sukses dalam ujian tengah semester (UTS) dan ujian sekolah.</p>
+            <a href="#materi" class="btn-daftar" style="padding: 12px 25px; display:inline-block;">Lihat Materi</a>
+        </div>
+        <div class="hero-image">
+            <!-- Anda bisa ganti src ini dengan gambar ilustrasi anak belajar -->
+            <div class="hero-image">
+                📐➕➖
+            </div>
+        </div>
+    </section>
+
+    <!-- Fitur Section -->
+    <section id="fitur" class="features">
+        <h2 class="section-title">Mengapa Belajar Di Sini?</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="icon">📹</div>
+                <h3>Video Pembelajaran</h3>
+                <p>Materi konsep dasar MTK dijelaskan dengan animated video yang mudah dimengerti.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">📝</div>
+                <h3>Bank Soal Lengkap</h3>
+                <p>Ribuan soal latihan (Latihan Harian, Ulangan, & Prediksi Ujian) disertai pembahasan.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">💬</div>
+                <h3>Tanya Jawab Instant</h3>
+                <p>Punya soal sulit? Langsung tanya via grup WhatsApp atau Forum diskusi.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Materi Section -->
+    <section id="materi" class="curriculum">
+        <h2>Materi Pembelajaran (Kurikulum SMPN 3 Ciasem)</h2>
+        <div class="class-list">
+            <!-- Kelas 7 -->
+            <div class="class-card">
+                <h3>Kelas 7 (Tujuh)</h3>
+                <ul>
+                    <li>Bilangan Bulat & Pecahan</li>
+                    <li>Aljabar Dasar</li>
+                    <li>Perbandingan & Skala</li>
+                    <li>Himpunan</li>
+                </ul>
+            </div>
+            <!-- Kelas 8 -->
+            <div class="class-card">
+                <h3>Kelas 8 (Delapan)</h3>
+                <ul>
+                    <li>Sistem Koordinat</li>
+                    <li>Relasi & Fungsi Aljabar</li>
+                    <li>Teorema Pythagoras</li>
+                    <li>Lingkaran & Bangun Ruang</li>
+                </ul>
+            </div>
+            <!-- Kelas 9 -->
+            <div class="class-card">
+                <h3>Kelas 9 (Sembilan)</h3>
+                <ul>
+                    <li>Bilangan Berpangkat</li>
+                    <li>Barisan & Deret</li>
+                    <li>Kesebangunan & Kekongruenan</li>
+                    <li>Statistika & Peluang</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call To Action -->
+    <section id="kontak" class="cta-section">
+        <h2>Siap Menjadi Master Matematika?</h2>
+        <p>Gabung sekarang bersama puluhan siswa SMPN 3 Ciasem lainnya.</p>
+        <!-- Ganti nomor WhatsApp dengan nomor Anda -->
+        <a href="https://wa.me/628XXXXXXXXXX?text=Halo+kak,+saya+siswa+SMPN+3+Ciasem+mau+bergabung+kelas+MTK" class="btn-cta">Chat via WhatsApp</a>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2023 Pembelajaran Matematika SMPN 3 Ciasem.</p>
+        <p>Dikembangkan untuk kemajuan siswa/i Ciasem.</p>
+    </footer>
+
+</body>
+</html
