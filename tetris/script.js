@@ -55,8 +55,8 @@ const PIECE_KEYS = Object.keys(PIECES);
 ────────────────────────────────────────────────────────── */
 let state = {
   username:  '',
-  token:     '',
-  ghOwner:   '',   // resolved from token via /user
+  token:     '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',
+  ghOwner:   '',
 
   // game
   board:     [],   // ROWS × COLS, each cell = color string or null
@@ -84,9 +84,9 @@ const $ = id => document.getElementById(id);
 const screenLogin   = $('screen-login');
 const screenGame    = $('screen-game');
 const inputUsername = $('input-username');
-const inputToken    = $('input-token');
-const chkRemember   = $('chk-remember');
-const btnToggleToken= $('btn-toggle-token');
+const inputToken    = { value: state.token };
+const chkRemember   = { checked: false };
+const btnToggleToken= null;
 const loginError    = $('login-error');
 const btnLogin      = $('btn-login');
 
@@ -122,7 +122,7 @@ const btnRefreshLb    = $('btn-refresh-lb');
 
 const touchControls   = $('touch-controls');
 const toast           = $('toast');
-const btnToggleTokenEye = btnToggleToken.querySelector('i');
+
 
 /* ──────────────────────────────────────────────────────────
    CANVAS SIZING
@@ -565,7 +565,7 @@ function clearLoginError() {
 }
 
 /** Toggle token visibility */
-btnToggleToken.addEventListener('click', () => {
+
   const isPassword = inputToken.type === 'password';
   inputToken.type = isPassword ? 'text' : 'password';
   btnToggleTokenEye.className = isPassword ? 'fa fa-eye-slash' : 'fa fa-eye';
@@ -593,17 +593,16 @@ async function resolveGhUser(token) {
 }
 
 btnLogin.addEventListener('click', handleLogin);
-inputToken.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+
 inputUsername.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
 
 async function handleLogin() {
   clearLoginError();
 
   const username = inputUsername.value.trim();
-  const token    = inputToken.value.trim();
+  const token = state.token;
 
   if (username.length < 3) { showLoginError('Username minimal 3 karakter.'); return; }
-  if (!token)               { showLoginError('Masukkan GitHub Personal Access Token.'); return; }
 
   btnLogin.disabled = true;
   btnLogin.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memverifikasi...';
