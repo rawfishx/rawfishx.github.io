@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Bedrock Addon Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
+    </script>
+    <style>
+        :root {
+            --bg: #0d0d0d;
+            --surface: #1a1a1a;
+            --surface2: #222;
+            --border: #333;
+            --neon: #00ff7f;
+            --neon-dim: #00cc66;
+            --neon-glow: rgba(0, 255, 127, 0.3);
+            --text: #ccc;
+            --text-bright: #e0e0e0;
+            --danger: #ff4444;
+            --warning: #ffaa00;
+            --pixel-font: 'Press Start 2P', monospace;
+            --mono: 'JetBrains Mono', monospace;
+            --radius: 6px;
+            --glass: rgba(26, 26, 26, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--mono);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image:
+                radial-gradient(ellipse at 20% 20%, rgba(0, 255, 127, 0.03) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, rgba(0, 255, 127, 0.03) 0%, transparent 60%),
+                repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255, 255, 255, 0.008) 40px, rgba(255, 255, 255, 0.008) 41px),
+                repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255, 255, 255, 0.008) 40px, rgba(255, 255, 255, 0.008) 41px);
+        }
+        /* Header */
+        .header {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 2px solid var(--neon-dim);
+            padding: 10px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            z-index: 100;
+            position: sticky;
+            top: 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 30px var(--neon-glow);
+        }
+        .header .logo {
+            font-family: var(--pixel-font);
+            font-size: 11px;
+            color: var(--neon);
+            text-shadow: 0 0 12px var(--neon-glow);
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+        .header input {
+            background: var(--surface2);
+            border: 2px solid var(--border);
+            color: var(--text-bright);
+            padding: 8px 12px;
+            border-radius: var(--radius);
+            font-family: var(--mono);
+            font-size: 12px;
+            transition: all 0.2s;
+            min-width: 120px;
+        }
+        .header input:focus {
+            outline: none;
+            border-color: var(--neon);
+            box-shadow: 0 0 10px var(--neon-glow);
+        }
+        .header .btn-sm {
+            padding: 8px 14px;
+            font-size: 10px;
+            font-family: var(--pixel-font);
+            background: var(--surface2);
+            border: 2px solid var(--neon-dim);
+            color: var(--neon);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .header .btn-sm:hover {
+            background: var(--neon-dim);
+            color: #000;
+            box-shadow: 0 0 16px var(--neon-glow);
+        }
+        /* Tab Bar */
+        .tab-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            padding: 6px 10px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--neon-dim) var(--surface2);
+            position: sticky;
+            top: 64px;
+            z-index: 99;
+        }
+        .tab-bar::-webkit-scrollbar {
+            height: 4px;
+        }
+        .tab-bar::-webkit-scrollbar-track {
+            background: var(--surface2);
+        }
+        .tab-bar::-webkit-scrollbar-thumb {
+            background: var(--neon-dim);
+            border-radius: 2px;
+        }
+        .tab-btn {
+            padding: 8px 13px;
+            font-family: var(--pixel-font);
+            font-size: 8px;
+            background: transparent;
+            border: 2px solid transparent;
+            color: #888;
+            cursor: pointer;
+            border-radius: var(--radius);
+            transition: all 0.2s;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+        }
+        .tab-btn:hover {
+            color: var(--neon);
+            border-color: #444;
+        }
+        .tab-btn.active {
+            color: #000;
+            background: var(--neon);
+            border-color: var(--neon);
+            box-shadow: 0 0 14px var(--neon-glow);
+            font-weight: bold;
+        }
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            flex: 1;
+            gap: 6px;
+            padding: 6px;
+            overflow: hidden;
+            min-height: 0;
+        }
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+            }
+        }
+        .editor-panel {
+            flex: 1;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 14px;
+            overflow-y: auto;
+            max-height: calc(100vh - 180px);
+            scrollbar-width: thin;
+            scrollbar-color: var(--neon-dim) var(--surface2);
+        }
+        .editor-panel::-webkit-scrollbar {
+            width: 5px;
+        }
+        .editor-panel::-webkit-scrollbar-track {
+            background: var(--surface2);
+            border-radius: 3px;
+        }
+        .editor-panel::-webkit-scrollbar-thumb {
+            background: var(--neon-dim);
+            border-radius: 3px;
+        }
+        .preview-panel {
+            flex: 1;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: calc(100vh - 180px);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--neon-dim) var(--surface2);
+        }
+        .preview-panel::-webkit-scrollbar {
+            width: 5px;
+        }
+        .preview-panel::-webkit-scrollbar-track {
+            background: var(--surface2);
+            border-radius: 3px;
+        }
+        .preview-panel::-webkit-scrollbar-thumb {
+            background: var(--neon-dim);
+            border-radius: 3px;
+        }
+        .section-title {
+            font-family: var(--pixel-font);
+            font-size: 10px;
+            color: var(--neon);
+            text-shadow: 0 0 8px var(--neon-glow);
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #333;
+            letter-spacing: 1px;
+        }
+        .form-group {
+            margin-bottom: 8px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 10px;
+            color: #aaa;
+            margin-bottom: 3px;
+            font-family: var(--mono);
+            letter-spacing: 0.5px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            background: var(--surface2);
+            border: 2px solid var(--border);
+            color: var(--text-bright);
+            padding: 7px 10px;
+            border-radius: var(--radius);
+            font-family: var(--mono);
+            font-size: 11px;
+            transition: all 0.2s;
+            resize: vertical;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--neon);
+            box-shadow: 0 0 8px var(--neon-glow);
+        }
+        .form-group input[type="checkbox"] {
+            width: auto;
+            accent-color: var(--neon);
+            transform: scale(1.2);
+            margin-right: 6px;
+        }
+        .checkbox-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .checkbox-row label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            cursor: pointer;
+            color: #bbb;
+        }
+        .btn {
+            padding: 10px 18px;
+            font-family: var(--pixel-font);
+            font-size: 10px;
+            background: var(--neon-dim);
+            border: none;
+            color: #000;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .btn:hover {
+            background: var(--neon);
+            box-shadow: 0 0 20px var(--neon-glow);
+            transform: translateY(-1px);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--neon-dim);
+            color: var(--neon);
+        }
+        .btn-outline:hover {
+            background: var(--neon-dim);
+            color: #000;
+        }
+        .btn-danger {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: #fff;
+        }
+        .btn-sm2 {
+            padding: 5px 10px;
+            font-size: 8px;
+            font-family: var(--pixel-font);
+            background: var(--surface2);
+            border: 2px solid var(--border);
+            color: #aaa;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-sm2:hover {
+            border-color: var(--neon);
+            color: var(--neon);
+        }
+        .json-output {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: var(--radius);
+            padding: 10px;
+            font-family: var(--mono);
+            font-size: 10px;
+            color: #ccc;
+            max-height: 350px;
+            overflow: auto;
+            white-space: pre-wrap;
+            position: relative;
+            scrollbar-width: thin;
+            scrollbar-color: #444 #0a0a0a;
+        }
+        .json-output::-webkit-scrollbar {
+            width: 4px;
+        }
+        .json-output::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        .json-output::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 2px;
+        }
+        .copy-btn {
+            position: sticky;
+            top: 6px;
+            float: right;
+            z-index: 5;
+            padding: 4px 10px;
+            font-size: 9px;
+            font-family: var(--pixel-font);
+            background: var(--surface2);
+            border: 1px solid var(--neon-dim);
+            color: var(--neon);
+            border-radius: var(--radius);
+            cursor: pointer;
+        }
+        .copy-btn:hover {
+            background: var(--neon-dim);
+            color: #000;
+        }
+        .bone-entry,
+        .cube-entry {
+            background: var(--surface);
+            border: 1px solid #2a2a2a;
+            border-radius: var(--radius);
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+        .bone-entry h4,
+        .cube-entry h4 {
+            font-family: var(--pixel-font);
+            font-size: 8px;
+            color: var(--neon);
+            margin-bottom: 6px;
+        }
+        .inline-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .inline-row>* {
+            flex: 1;
+            min-width: 60px;
+        }
+        .timeline-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            padding: 6px 0;
+            border-bottom: 1px solid #222;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 9px;
+            font-family: var(--pixel-font);
+            background: var(--neon-dim);
+            color: #000;
+            border-radius: 3px;
+        }
+        .tree-item {
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 10px;
+            transition: all 0.15s;
+            border-left: 2px solid transparent;
+        }
+        .tree-item:hover {
+            background: #252525;
+            border-left-color: var(--neon-dim);
+        }
+        .tree-item.selected {
+            background: #1a3a2a;
+            border-left-color: var(--neon);
+            color: var(--neon);
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        input[type="range"] {
+            accent-color: var(--neon);
+            width: 100%;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--neon-dim);
+            color: #000;
+            padding: 10px 18px;
+            border-radius: var(--radius);
+            font-family: var(--pixel-font);
+            font-size: 9px;
+            z-index: 999;
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 1.5s forwards;
+            box-shadow: 0 0 20px var(--neon-glow);
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+        }
+        @media (max-width:600px) {
+            .header {
+                gap: 4px;
+                padding: 6px 8px;
+            }
+            .header .logo {
+                font-size: 8px;
+            }
+            .header input {
+                font-size: 10px;
+                padding: 6px 8px;
+                min-width: 80px;
+            }
+            .tab-btn {
+                font-size: 6px;
+                padding: 5px 7px;
+            }
+            .editor-panel,
+            .preview-panel {
+                max-height: none;
+                padding: 8px;
+            }
+            .btn {
+                font-size: 8px;
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span class="logo">⛏ BEDROCK ADDON STUDIO</span>
+        <input type="text" id="projectName" placeholder="Project Name" value="MyAddon">
+        <input type="text" id="addonName" placeholder="Addon Name" value="My Addon">
+        <input type="text" id="namespace" placeholder="namespace" value="myaddon">
+        <button class="btn-sm" onclick="saveProject()" title="Save to LocalStorage">💾 Save</button>
+        <button class="btn-sm" onclick="loadProject()" title="Load from LocalStorage">📂 Load</button>
+        <button class="btn-sm" onclick="undoAction()">↩ Undo</button>
+        <button class="btn-sm" onclick="redoAction()">↪ Redo</button>
+        <button class="btn-sm" onclick="generateUUIDs()">🔑 UUIDs</button>
+    </div>
+    <div class="tab-bar" id="tabBar">
+        <button class="tab-btn active" data-tab="entity">Entity Creator</button>
+        <button class="tab-btn" data-tab="item">Item Creator</button>
+        <button class="tab-btn" data-tab="block">Block Creator</button>
+        <button class="tab-btn" data-tab="geometry">Geometry Creator</button>
+        <button class="tab-btn" data-tab="animation">Animation</button>
+        <button class="tab-btn" data-tab="animController">Anim Controller</button>
+        <button class="tab-btn" data-tab="manifest">Manifest</button>
+        <button class="tab-btn" data-tab="lootTable">Loot Table</button>
+        <button class="tab-btn" data-tab="recipe">Recipe</button>
+        <button class="tab-btn" data-tab="spawnRule">Spawn Rule</button>
+        <button class="tab-btn" data-tab="export">📦 Export</button>
+    </div>
+    <div class="main-container">
+        <div class="editor-panel" id="editorPanel"></div>
+        <div class="preview-panel" id="previewPanel">
+            <div class="flex-between">
+                <span class="section-title">📋 LIVE JSON PREVIEW</span>
+                <button class="copy-btn" onclick="copyJSON()">📋 Copy</button>
+            </div>
+            <div class="json-output" id="jsonPreview">// Select a tab to see JSON preview</div>
+        </div>
+    </div>
+    <div id="toastContainer"></div>
+
+    <script>
+        (function() {
+            // ============ STATE ============
+            const state = {
+                projectName: 'MyAddon',
+                addonName: 'My Addon',
+                namespace: 'myaddon',
+                bpUUID: '',
+                rpUUID: '',
+                activeTab: 'entity',
+                undoStack: [],
+                redoStack: [],
+                // Entity
+                entity: {
+                    identifier: 'myaddon:custom_entity',
+                    displayName: 'Custom Entity',
+                    health: 20,
+                    attackDamage: 4,
+                    movementSpeed: 0.25,
+                    knockbackResistance: 0,
+                    followRange: 16,
+                    collisionWidth: 0.6,
+                    collisionHeight: 1.8,
+                    canAttack: true,
+                    canFly: false,
+                    canSwim: false,
+                    canClimb: false,
+                    canTame: false,
+                    canBreed: false,
+                    canExplode: false,
+                    canTeleport: false,
+                    canBurn: true,
+                    canHeal: true,
+                    aiMelee: true,
+                    aiRanged: false,
+                    aiStroll: true,
+                    aiFollow: false,
+                    aiPanic: true,
+                    aiLook: true,
+                    aiAvoid: false,
+                },
+                // Item
+                item: {
+                    identifier: 'myaddon:custom_item',
+                    displayName: 'Custom Item',
+                    maxStack: 64,
+                    durability: 0,
+                    foodValue: 0,
+                    cooldown: 0,
+                    rarity: 'common',
+                    itemType: 'material',
+                    weaponDamage: 5,
+                    weaponSpeed: 1.6,
+                    armorDefense: 3,
+                    armorToughness: 0,
+                    hungerRestore: 4,
+                    saturation: 2.4,
+                },
+                // Block
+                block: {
+                    identifier: 'myaddon:custom_block',
+                    displayName: 'Custom Block',
+                    hardness: 1.5,
+                    resistance: 6,
+                    friction: 0.6,
+                    lightLevel: 0,
+                    breakTime: 1,
+                    solid: true,
+                    transparent: false,
+                    climbable: false,
+                    breakable: true,
+                    explosiveResistant: false,
+                    emitsLight: false,
+                },
+                // Geometry
+                geometry: {
+                    textureWidth: 64,
+                    textureHeight: 64,
+                    visibleBoundsWidth: 2,
+                    visibleBoundsHeight: 3,
+                    visibleBoundsOffset: [0, 0.75, 0],
+                    bones: [],
+                },
+                selectedBoneIndex: -1,
+                selectedCubeIndex: -1,
+                // Animation
+                animation: {
+                    animName: 'animation.entity.walk',
+                    loop: true,
+                    animLength: 1.0,
+                    keyframes: [],
+                    targetBone: '',
+                },
+                // Animation Controller
+                animController: {
+                    controllerName: 'controller.animation.entity.move',
+                    states: [],
+                },
+                // Manifest
+                manifest: {
+                    description: 'A custom Minecraft Bedrock addon',
+                    version: [1, 0, 0],
+                    minEngineVersion: [1, 20, 0],
+                },
+                // Loot Table
+                lootTable: {
+                    entityType: 'minecraft:zombie',
+                    pools: [],
+                },
+                // Recipe
+                recipe: {
+                    recipeId: 'myaddon:custom_recipe',
+                    recipeType: 'shaped',
+                    pattern: ['XXX', 'X X', 'XXX'],
+                    keys: {},
+                    resultItem: 'minecraft:diamond',
+                    resultAmount: 1,
+                    furnaceInput: 'minecraft:iron_ingot',
+                    furnaceOutput: 'minecraft:iron_nugget',
+                },
+                // Spawn Rule
+                spawnRule: {
+                    entityId: 'myaddon:custom_entity',
+                    biomeFilter: 'minecraft:plains',
+                    spawnWeight: 10,
+                    minGroup: 1,
+                    maxGroup: 3,
+                    minHeight: 60,
+                    maxHeight: 120,
+                },
+            };
+
+            function getNS() { return document.getElementById('namespace').value || 'myaddon'; }
+
+            function getProjName() { return document.getElementById('projectName').value || 'MyAddon'; }
+
+            function pushUndo() {
+                state.undoStack.push(JSON.parse(JSON.stringify(state)));
+                if (state.undoStack.length > 50) state.undoStack.shift();
+                state.redoStack = [];
+            }
+
+            function undoAction() {
+                if (state.undoStack.length === 0) return;
+                state.redoStack.push(JSON.parse(JSON.stringify(state)));
+                const prev = state.undoStack.pop();
+                Object.assign(state, prev);
+                refreshAll();
+                showToast('Undo');
+            }
+
+            function redoAction() {
+                if (state.redoStack.length === 0) return;
+                state.undoStack.push(JSON.parse(JSON.stringify(state)));
+                const next = state.redoStack.pop();
+                Object.assign(state, next);
+                refreshAll();
+                showToast('Redo');
+            }
+
+            function showToast(msg) {
+                const t = document.getElementById('toastContainer');
+                const el = document.createElement('div');
+                el.className = 'toast';
+                el.textContent = msg;
+                t.appendChild(el);
+                setTimeout(() => el.remove(), 2000);
+            }
+
+            function generateUUIDs() {
+                state.bpUUID = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r =
+                        Math.random() * 16 | 0,
+                        v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
+                state.rpUUID = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r =
+                        Math.random() * 16 | 0,
+                        v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
+                document.getElementById('bpUUIDDisplay') && (document.getElementById('bpUUIDDisplay').textContent =
+                    state.bpUUID);
+                document.getElementById('rpUUIDDisplay') && (document.getElementById('rpUUIDDisplay').textContent =
+                    state.rpUUID);
+                showToast('UUIDs Generated!');
+                pushUndo();
+            }
+
+            function saveProject() {
+                const data = { ...state, undoStack: [], redoStack: [] };
+                data.projectName = document.getElementById('projectName').value;
+                data.addonName = document.getElementById('addonName').value;
+                data.namespace = document.getElementById('namespace').value;
+                localStorage.setItem('mc_addon_studio_project', JSON.stringify(data));
+                showToast('Project Saved!');
+            }
+
+            function loadProject() {
+                const raw = localStorage.getItem('mc_addon_studio_project');
+                if (!raw) { showToast('No saved project found'); return; }
+                const data = JSON.parse(raw);
+                Object.assign(state, data);
+                document.getElementById('projectName').value = state.projectName;
+                document.getElementById('addonName').value = state.addonName;
+                document.getElementById('namespace').value = state.namespace;
+                state.undoStack = [];
+                state.redoStack = [];
+                refreshAll();
+                showToast('Project Loaded!');
+            }
+
+            function copyJSON() {
+                const txt = document.getElementById('jsonPreview').textContent;
+                navigator.clipboard.writeText(txt).then(() => showToast('Copied!'));
+            }
+
+            // ============ RENDER EDITOR ============
+            function renderEditor() {
+                const panel = document.getElementById('editorPanel');
+                const tab = state.activeTab;
+                panel.innerHTML = '';
+                switch (tab) {
+                    case 'entity':
+                        renderEntityEditor(panel);
+                        break;
+                    case 'item':
+                        renderItemEditor(panel);
+                        break;
+                    case 'block':
+                        renderBlockEditor(panel);
+                        break;
+                    case 'geometry':
+                        renderGeometryEditor(panel);
+                        break;
+                    case 'animation':
+                        renderAnimationEditor(panel);
+                        break;
+                    case 'animController':
+                        renderAnimControllerEditor(panel);
+                        break;
+                    case 'manifest':
+                        renderManifestEditor(panel);
+                        break;
+                    case 'lootTable':
+                        renderLootTableEditor(panel);
+                        break;
+                    case 'recipe':
+                        renderRecipeEditor(panel);
+                        break;
+                    case 'spawnRule':
+                        renderSpawnRuleEditor(panel);
+                        break;
+                    case 'export':
+                        renderExportPanel(panel);
+                        break;
+                }
+                updateJSONPreview();
+            }
+
+            function refreshAll() {
+                renderEditor();
+                updateJSONPreview();
+            }
+
+            // ============ ENTITY EDITOR ============
+            function renderEntityEditor(panel) {
+                const e = state.entity;
+                panel.innerHTML = `
+                <h3 class="section-title">🐺 ENTITY CREATOR</h3>
+                <div class="form-group"><label>Identifier (namespace:name)</label><input type="text" id="ent_id" value="${e.identifier}" onchange="updateEntityField('identifier',this.value)"></div>
+                <div class="form-group"><label>Display Name</label><input type="text" id="ent_dname" value="${e.displayName}" onchange="updateEntityField('displayName',this.value)"></div>
+                <div class="inline-row">
+                  <div class="form-group"><label>Health</label><input type="number" value="${e.health}" onchange="updateEntityField('health',+this.value)"></div>
+                  <div class="form-group"><label>Attack Damage</label><input type="number" value="${e.attackDamage}" onchange="updateEntityField('attackDamage',+this.value)"></div>
+                  <div class="form-group"><label>Movement Speed</label><input type="number" step="0.01" value="${e.movementSpeed}" onchange="updateEntityField('movementSpeed',+this.value)"></div>
+                </div>
+                <div class="inline-row">
+                  <div class="form-group"><label>Knockback Resist</label><input type="number" step="0.1" value="${e.knockbackResistance}" onchange="updateEntityField('knockbackResistance',+this.value)"></div>
+                  <div class="form-group"><label>Follow Range</label><input type="number" value="${e.followRange}" onchange="updateEntityField('followRange',+this.value)"></div>
+                  <div class="form-group"><label>Collision W</label><input type="number" step="0.1" value="${e.collisionWidth}" onchange="updateEntityField('collisionWidth',+this.value)"></div>
+                  <div class="form-group"><label>Collision H</label><input type="number" step="0.1" value="${e.collisionHeight}" onchange="updateEntityField('collisionHeight',+this.value)"></div>
+                </div>
+                <h4 style="color:var(--neon);font-size:10px;margin-top:8px;">Behavior</h4>
+                <div class="checkbox-row">
+                  ${['canAttack','canFly','canSwim','canClimb','canTame','canBreed','canExplode','canTeleport','canBurn','canHeal'].map(k=>`
+                    <label><input type="checkbox" ${e[k]?'checked':''} onchange="updateEntityField('${k}',this.checked)"> ${k.replace('can','').replace(/([A-Z])/g,' $1').trim()}</label>
+                  `).join('')}
+                </div>
+                <h4 style="color:var(--neon);font-size:10px;margin-top:8px;">AI Goals</h4>
+                <div class="checkbox-row">
+                  ${['aiMelee','aiRanged','aiStroll','aiFollow','aiPanic','aiLook','aiAvoid'].map(k=>`
+                    <label><input type="checkbox" ${e[k]?'checked':''} onchange="updateEntityField('${k}',this.checked)"> ${k.replace('ai','')}</label>
+                  `).join('')}
+                </div>`;
+            }
+
+            function updateEntityField(key, val) {
+                pushUndo();
+                state.entity[key] = val;
+                updateJSONPreview();
+            }
+
+            // ============ ITEM EDITOR ============
+            function renderItemEditor(panel) {
+                const it = state.item;
+                panel.innerHTML = `
+                <h3 class="section-title">⚔ ITEM CREATOR</h3>
+                <div class="form-group"><label>Identifier</label><input type="text" value="${it.identifier}" onchange="updateItemField('identifier',this.value)"></div>
+                <div class="form-group"><label>Display Name</label><input type="text" value="${it.displayName}" onchange="updateItemField('displayName',this.value)"></div>
+                <div class="inline-row">
+                  <div class="form-group"><label>Max Stack</label><input type="number" value="${it.maxStack}" onchange="updateItemField('maxStack',+this.value)"></div>
+                  <div class="form-group"><label>Durability</label><input type="number" value="${it.durability}" onchange="updateItemField('durability',+this.value)"></div>
+                  <div class="form-group"><label>Cooldown</label><input type="number" step="0.1" value="${it.cooldown}" onchange="updateItemField('cooldown',+this.value)"></div>
+                </div>
+                <div class="form-group"><label>Rarity</label><select onchange="updateItemField('rarity',this.value)">${['common','uncommon','rare','epic'].map(r=>`<option ${it.rarity===r?'selected':''}>${r}</option>`).join('')}</select></div>
+                <div class="form-group"><label>Item Type</label><select onchange="updateItemField('itemType',this.value);renderEditor();">${['weapon','food','tool','armor','material','magic item'].map(t=>`<option ${it.itemType===t?'selected':''}>${t}</option>`).join('')}</select></div>
+                ${it.itemType==='weapon'?`
+                  <div class="inline-row">
+                    <div class="form-group"><label>Damage</label><input type="number" value="${it.weaponDamage}" onchange="updateItemField('weaponDamage',+this.value)"></div>
+                    <div class="form-group"><label>Attack Speed</label><input type="number" step="0.1" value="${it.weaponSpeed}" onchange="updateItemField('weaponSpeed',+this.value)"></div>
+                  </div>`:''}
+                ${it.itemType==='armor'?`
+                  <div class="inline-row">
+                    <div class="form-group"><label>Defense</label><input type="number" value="${it.armorDefense}" onchange="updateItemField('armorDefense',+this.value)"></div>
+                    <div class="form-group"><label>Toughness</label><input type="number" value="${it.armorToughness}" onchange="updateItemField('armorToughness',+this.value)"></div>
+                  </div>`:''}
+                ${it.itemType==='food'?`
+                  <div class="inline-row">
+                    <div class="form-group"><label>Hunger Restore</label><input type="number" value="${it.hungerRestore}" onchange="updateItemField('hungerRestore',+this.value)"></div>
+                    <div class="form-group"><label>Saturation</label><input type="number" step="0.1" value="${it.saturation}" onchange="updateItemField('saturation',+this.value)"></div>
+                  </div>`:''}
+                ${it.itemType==='food'?`<div class="form-group"><label>Food Value</label><input type="number" value="${it.foodValue}" onchange="updateItemField('foodValue',+this.value)"></div>`:''}`;
+            }
+
+            function updateItemField(key, val) {
+                pushUndo();
+                state.item[key] = val;
+                updateJSONPreview();
+            }
+
+            // ============ BLOCK EDITOR ============
+            function renderBlockEditor(panel) {
+                const b = state.block;
+                panel.innerHTML = `
+                <h3 class="section-title">🧱 BLOCK CREATOR</h3>
+                <div class="form-group"><label>Identifier</label><input type="text" value="${b.identifier}" onchange="updateBlockField('identifier',this.value)"></div>
+                <div class="form-group"><label>Display Name</label><input type="text" value="${b.displayName}" onchange="updateBlockField('displayName',this.value)"></div>
+                <div class="inline-row">
+                  <div class="form-group"><label>Hardness</label><input type="number" step="0.1" value="${b.hardness}" onchange="updateBlockField('hardness',+this.value)"></div>
+                  <div class="form-group"><label>Resistance</label><input type="number" step="0.1" value="${b.resistance}" onchange="updateBlockField('resistance',+this.value)"></div>
+                  <div class="form-group"><label>Friction</label><input type="number" step="0.01" value="${b.friction}" onchange="updateBlockField('friction',+this.value)"></div>
+                </div>
+                <div class="inline-row">
+                  <div class="form-group"><label>Light Level</label><input type="number" value="${b.lightLevel}" onchange="updateBlockField('lightLevel',+this.value)"></div>
+                  <div class="form-group"><label>Break Time</label><input type="number" step="0.1" value="${b.breakTime}" onchange="updateBlockField('breakTime',+this.value)"></div>
+                </div>
+                <h4 style="color:var(--neon);font-size:10px;">Properties</h4>
+                <div class="checkbox-row">
+                  ${['solid','transparent','climbable','breakable','explosiveResistant','emitsLight'].map(k=>`
+                    <label><input type="checkbox" ${b[k]?'checked':''} onchange="updateBlockField('${k}',this.checked)"> ${k.replace(/([A-Z])/g,' $1').trim()}</label>
+                  `).join('')}
+                </div>`;
+            }
+
+            function updateBlockField(key, val) {
+                pushUndo();
+                state.block[key] = val;
+                updateJSONPreview();
+            }
+
+            // ============ GEOMETRY EDITOR ============
+            function renderGeometryEditor(panel) {
+                const g = state.geometry;
+                let bonesHTML = g.bones.map((b, bi) => `
+                <div class="bone-entry">
+                  <div class="flex-between">
+                    <h4>🦴 Bone: ${b.name||'unnamed'}</h4>
+                    <div>
+                      <button class="btn-sm2" onclick="selectBone(${bi})">Edit</button>
+                      <button class="btn-sm2" style="border-color:#f44;color:#f44;" onclick="deleteBone(${bi})">✕</button>
+                    </div>
+                  </div>
+                  ${state.selectedBoneIndex===bi ? renderBoneDetail(b,bi) : `<span style="font-size:10px;color:#888;">${b.cubes?b.cubes.length:0} cubes | Click Edit</span>`}
+                </div>`).join('');
+
+                panel.innerHTML = `
+                <h3 class="section-title">📐 GEOMETRY CREATOR</h3>
+                <div class="inline-row">
+                  <div class="form-group"><label>Texture Width</label><input type="number" value="${g.textureWidth}" onchange="updateGeoField('textureWidth',+this.value)"></div>
+                  <div class="form-group"><label>Texture Height</label><input type="number" value="${g.textureHeight}" onchange="updateGeoField('textureHeight',+this.value)"></div>
+                  <div class="form-group"><label>Bounds W</label><input type="number" step="0.1" value="${g.visibleBoundsWidth}" onchange="updateGeoField('visibleBoundsWidth',+this.value)"></div>
+                  <div class="form-group"><label>Bounds H</label><input type="number" step="0.1" value="${g.visibleBoundsHeight}" onchange="updateGeoField('visibleBoundsHeight',+this.value)"></div>
+                </div>
+                <div class="form-group"><label>Bounds Offset (X,Y,Z)</label><input type="text" value="${g.visibleBoundsOffset.join(',')}" onchange="updateGeoField('visibleBoundsOffset',this.value.split(',').map(Number))"></div>
+                <button class="btn" onclick="addBone()" style="margin:6px 0;">+ Add Bone</button>
+                <div id="bonesContainer">${bonesHTML||'<p style="color:#666;">No bones yet. Click "Add Bone".</p>'}</div>`;
+            }
+
+            function renderBoneDetail(b, bi) {
+                let cubesHTML = (b.cubes || []).map((c, ci) => `
+                <div class="cube-entry">
+                  <div class="flex-between">
+                    <h4>📦 Cube ${ci}</h4>
+                    <button class="btn-sm2" style="border-color:#f44;color:#f44;" onclick="deleteCube(${bi},${ci})">✕</button>
+                  </div>
+                  <div class="inline-row">
+                    <div class="form-group"><label>Origin X,Y,Z</label><input type="text" value="${(c.origin||[0,0,0]).join(',')}" onchange="updateCubeField(${bi},${ci},'origin',this.value.split(',').map(Number))"></div>
+                  </div>
+                  <div class="inline-row">
+                    <div class="form-group"><label>Size X,Y,Z</label><input type="text" value="${(c.size||[1,1,1]).join(',')}" onchange="updateCubeField(${bi},${ci},'size',this.value.split(',').map(Number))"></div>
+                  </div>
+                  <div class="inline-row">
+                    <div class="form-group"><label>Pivot X,Y,Z</label><input type="text" value="${(c.pivot||[0,0,0]).join(',')}" onchange="updateCubeField(${bi},${ci},'pivot',this.value.split(',').map(Number))"></div>
+                  </div>
+                  <div class="inline-row">
+                    <div class="form-group"><label>Rotation X,Y,Z</label><input type="text" value="${(c.rotation||[0,0,0]).join(',')}" onchange="updateCubeField(${bi},${ci},'rotation',this.value.split(',').map(Number))"></div>
+                  </div>
+                  <div class="inline-row">
+                    <div class="form-group"><label>UV X,Y</label><input type="text" value="${(c.uv||[0,0]).join(',')}" onchange="updateCubeField(${bi},${ci},'uv',this.value.split(',').map(Number))"></div>
+                    <div class="form-group"><label>Inflate</label><input type="number" step="0.1" value="${c.inflate||0}" onchange="updateCubeField(${bi},${ci},'inflate',+this.value)"></div>
+                  </div>
+                  <label><input type="checkbox" ${c.mirror?'checked':''} onchange="updateCubeField(${bi},${ci},'mirror',this.checked)"> Mirror</label>
+                </div>`).join('');
+
+                return `
+                <div style="margin-top:6px;">
+                  <div class="inline-row">
+                    <div class="form-group"><label>Bone Name</label><input type="text" value="${b.name||''}" onchange="updateBoneField(${bi},'name',this.value)"></div>
+                    <div class="form-group"><label>Parent</label><input type="text" value="${b.parent||''}" onchange="updateBoneField(${bi},'parent',this.value)" placeholder="none"></div>
+                  </div>
+                  <div class="inline-row">
+                    <div class="form-group"><label>Pivot X,Y,Z</label><input type="text" value="${(b.pivot||[0,0,0]).join(',')}" onchange="updateBoneField(${bi},'pivot',this.value.split(',').map(Number))"></div>
+                  </div>
+                  <div class="inline-row">
+                    <div class="form-group"><label>Rotation X,Y,Z</label><input type="text" value="${(b.rotation||[0,0,0]).join(',')}" onchange="updateBoneField(${bi},'rotation',this.value.split(',').map(Number))"></div>
+                  </div>
+                  <button class="btn-sm2" onclick="addCube(${bi})" style="margin:4px 0;">+ Add Cube</button>
+                  <div>${cubesHTML||'<p style="color:#555;font-size:10px;">No cubes</p>'}</div>
+                </div>`;
+            }
+
+            function addBone() {
+                pushUndo();
+                state.geometry.bones.push({ name: 'bone_' + (state.geometry.bones.length + 1), parent: '', pivot: [0, 0,
+                        0
+                    ], rotation: [0, 0, 0], cubes: [] });
+                state.selectedBoneIndex = state.geometry.bones.length - 1;
+                refreshAll();
+            }
+
+            function deleteBone(bi) {
+                pushUndo();
+                state.geometry.bones.splice(bi, 1);
+                state.selectedBoneIndex = -1;
+                refreshAll();
+            }
+
+            function selectBone(bi) {
+                state.selectedBoneIndex = bi;
+                refreshAll();
+            }
+
+            function updateBoneField(bi, key, val) {
+                pushUndo();
+                state.geometry.bones[bi][key] = val;
+                updateJSONPreview();
+            }
+
+            function addCube(bi) {
+                pushUndo();
+                if (!state.geometry.bones[bi].cubes) state.geometry.bones[bi].cubes = [];
+                state.geometry.bones[bi].cubes.push({ origin: [0, 0, 0], size: [1, 1, 1], pivot: [0, 0, 0], rotation: [0,
+                        0, 0
+                    ], uv: [0, 0], mirror: false, inflate: 0 });
+                refreshAll();
+            }
+
+            function deleteCube(bi, ci) {
+                pushUndo();
+                state.geometry.bones[bi].cubes.splice(ci, 1);
+                refreshAll();
+            }
+
+            function updateCubeField(bi, ci, key, val) {
+                pushUndo();
+                state.geometry.bones[bi].cubes[ci][key] = val;
+                updateJSONPreview();
+            }
+
+            function updateGeoField(key, val) {
+                pushUndo();
+                state.geometry[key] = val;
+                updateJSONPreview();
+            }
+
+            // ============ ANIMATION EDITOR ============
+            function renderAnimationEditor(panel) {
+                const a = state.animation;
+                let kfHTML = a.keyframes.map((kf, i) => `
+                <div class="timeline-row">
+                  <div class="form-group"><label>Time</label><input type="number" step="0.01" value="${kf.time}" onchange="updateKF(${i},'time',+this.value)"></div>
+                  <div class="form-group"><label>Bone</label><input type="text" value="${kf.bone||''}" onchange="updateKF(${i},'bone',this.value)"></div>
+                  <div class="form-group"><label>Rot X,Y,Z</label><input type="text" value="${(kf.rotation||[0,0,0]).join(',')}" onchange="updateKF(${i},'rotation',this.value.split(',').map(Number))"></div>
+                  <div class="form-group"><label>Pos X,Y,Z</label><input type="text" value="${(kf.position||[0,0,0]).join(',')}" onchange="updateKF(${i},'position',this.value.split(',').map(Number))"></div>
+                  <div class="form-group"><label>Scale X,Y,Z</label><input type="text" value="${(kf.scale||[1,1,1]).join(',')}" onchange="updateKF(${i},'scale',this.value.split(',').map(Number))"></div>
+                  <button class="btn-sm2" style="border-color:#f44;color:#f44;" onclick="deleteKF(${i})">✕</button>
+                </div>`).join('');
+
+                panel.innerHTML = `
+                <h3 class="section-title">🎬 ANIMATION CREATOR</h3>
+                <div class="inline-row">
+                  <div class="form-group"><label>Animation Name</label><input type="text" value="${a.animName}" onchange="updateAnimField('animName',this.value)"></div>
+                  <div class="form-group"><label>Length (s)</label><input type="number" step="0.1" value="${a.animLength}" onchange="updateAnimField('animLength',+this.value)"></div>
+                </div>
+                <label><input type="checkbox" ${a.loop?'checked':''} onchange="updateAnimField('loop',this.checked)"> Loop</label>
+                <div class="form-group"><label>Target Bone</label><input type="text" value="${a.targetBone}" onchange="updateAnimField('targetBone',this.value)"></div>
+                <button class="btn" onclick="addKeyframe()" style="margin:6px 0;">+ Add Keyframe</button>
+                <div>${kfHTML||'<p style="color:#666;">No keyframes</p>'}</div>`;
+            }
+
+            function updateAnimField(key, val) { pushUndo();
+                state.animation[key] = val;
+                updateJSONPreview(); }
+
+            function addKeyframe() { pushUndo();
+                state.animation.keyframes.push({ time: 0, bone: state.animation.targetBone || '', rotation: [0, 0, 0],
+                    position: [0, 0, 0], scale: [1, 1, 1] });
+                refreshAll(); }
+
+            function deleteKF(i) { pushUndo();
+                state.animation.keyframes.splice(i, 1);
+                refreshAll(); }
+
+            function updateKF(i, key, val) { pushUndo();
+                state.animation.keyframes[i][key] = val;
+                updateJSONPreview(); }
+
+            // ============ ANIM CONTROLLER EDITOR ============
+            function renderAnimControllerEditor(panel) {
+                const ac = state.animController;
+                let stHTML = ac.states.map((s, i) => `
+                <div class="bone-entry">
+                  <div class="flex-between">
+                    <h4>State: ${s.name||'unnamed'}</h4>
+                    <button class="btn-sm2" style="border-color:#f44;color:#f44;" onclick="deleteACState(${i})">✕</button>
+                  </div>
+                  <div class="form-group"><label>State Name</label><input type="text" value="${s.name||''}" onchange="updateACState(${i},'name',this.value)"></div>
+                  <div class="form-group"><label>Animation</label><input type="text" value="${s.animation||''}" onchange="updateACState(${i},'animation',this.value)"></div>
+                  <div class="form-group"><label>Transitions (JSON)</label><textarea rows="3" onchange="updateACState(${i},'transitions',JSON.parse(this.value))">${JSON.stringify(s.transitions||[])}</textarea></div>
+                </div>`).join('');
+                panel.innerHTML = `
+                <h3 class="section-title">🎮 ANIMATION CONTROLLER</h3>
+                <div class="form-group"><label>Controller Name</label><input type="text" value="${ac.controllerName}" onchange="updateACField('controllerName',this.value)"></div>
+                <button class="btn" onclick="addACState()">+ Add State</button>
+                <div>${stHTML||'<p style="color:#666;">No states</p>'}</div>`;
+            }
+
+            function updateACField(key, val) { pushUndo();
+                state.animController[key] = val;
+                updateJSONPreview(); }
+
+            function addACState() { pushUndo();
+                state.animController.states.push({ name: 'default', animation: '', transitions: [] });
+                refreshAll(); }
+
+            function deleteACState(i) { pushUndo();
+                state.animController.states.splice(i, 1);
+                refreshAll(); }
+
+            function updateACState(i, key, val) { pushUndo();
+                state.animController.states[i][key] = val;
+                updateJSONPreview(); }
+
+            // ============ MANIFEST EDITOR ============
+            function renderManifestEditor(panel) {
+                const m = state.manifest;
+                panel.innerHTML = `
+                <h3 class="section-title">📜 MANIFEST GENERATOR</h3>
+                <div class="form-group"><label>Description</label><input type="text" value="${m.description}" onchange="updateManField('description',this.value)"></div>
+                <div class="inline-row">
+                  <div class="form-group"><label>Version (major,minor,patch)</label><input type="text" value="${m.version.join(',')}" onchange="updateManField('version',this.value.split(',').map(Number))"></div>
+                  <div class="form-group"><label>Min Engine Version</label><input type="text" value="${m.minEngineVersion.join(',')}" onchange="updateManField('minEngineVersion',this.value.split(',').map(Number))"></div>
+                </div>
+                <div class="inline-row">
+                  <div class="form-group"><label>BP UUID</label><input type="text" id="bpUUIDDisplay" value="${state.bpUUID}" onchange="state.bpUUID=this.value;updateJSONPreview()" placeholder="Click UUIDs button"></div>
+                  <div class="form-group"><label>RP UUID</label><input type="text" id="rpUUIDDisplay" value="${state.rpUUID}" onchange="state.rpUUID=this.value;updateJSONPreview()" placeholder="Click UUIDs button"></div>
+                </div>
+                <button class="btn-sm2" onclick="generateUUIDs()">🔑 Generate New UUIDs</button>`;
+            }
+
+            function updateManField(key, val) { pushUndo();
+                state.manifest[key] = val;
+                updateJSONPreview(); }
+
+            // ============ LOOT TABLE EDITOR ============
+            function renderLootTableEditor(panel) {
+                const lt = state.lootTable;
+                let poolsHTML = lt.pools.map((p, i) => `
+                <div class="bone-entry">
+                  <div class="flex-between"><h4>Pool ${i+1}</h4><button class="btn-sm2" style="border-color:#f44;color:#f44;" onclick="deleteLootPool(${i})">✕</button></div>
+                  <div class="inline-row">
+                    <div class="form-group"><label>Item ID</label><input type="text" value="${p.itemId||''}" onchange="updateLootPool(${i},'itemId',this.value)"></div>
+                    <div class="form-group"><label>Weight</label><input type="number" value="${p.weight||1}" onchange="updateLootPool(${i},'weight',+this.value)"></div>
+                    <div class="form-group"><label>Quantity</label><input type="number" value="${p.quantity||1}" onchange="updateLootPool(${i},'quantity',+this.value)"></div>
+                    <div class="form-group"><label>Chance</label><input type="number" step="0.01" value="${p.chance||1}" onchange="updateLootPool(${i},'chance',+this.value)"></div>
+                  </div>
+                </div>`).join('');
+                panel.innerHTML = `
+                <h3 class="section-title">🎁 LOOT TABLE CREATOR</h3>
+                <div class="form-group"><label>Entity Type</label><input type="text" value="${lt.entityType}" onchange="updateLTField('entityType',this.value)"></div>
+                <button class="btn" onclick="addLootPool()">+ Add Pool</button>
+                <div>${poolsHTML||'<p style="color:#666;">No loot pools</p>'}</div>`;
+            }
+
+            function updateLTField(key, val) { pushUndo();
+                state.lootTable[key] = val;
+                updateJSONPreview(); }
+
+            function addLootPool() { pushUndo();
+                state.lootTable.pools.push({ itemId: 'minecraft:diamond', weight: 1, quantity: 1, chance: 1 });
+                refreshAll(); }
+
+            function deleteLootPool(i) { pushUndo();
+                state.lootTable.pools.splice(i, 1);
+                refreshAll(); }
+
+            function updateLootPool(i, key, val) { pushUndo();
+                state.lootTable.pools[i][key] = val;
+                updateJSONPreview(); }
+
+            // ============ RECIPE EDITOR ============
+            function renderRecipeEditor(panel) {
+                const r = state.recipe;
+                panel.innerHTML = `
+                <h3 class="section-title">🔧 RECIPE CREATOR</h3>
+                <div class="form-group"><label>Recipe ID</label><input type="text" value="${r.recipeId}" onchange="updateRecField('recipeId',this.value)"></div>
+                <div class="form-group"><label>Type</label><select onchange="updateRecField('recipeType',this.value);renderEditor();">${['shaped','shapeless','furnace'].map(t=>`<option ${r.recipeType===t?'selected':''}>${t}</option>`).join('')}</select></div>
+                ${r.recipeType==='shaped'?`
+                  <div class="form-group"><label>Pattern (comma separated rows)</label><input type="text" value="${r.pattern.join(',')}" onchange="updateRecField('pattern',this.value.split(','))"></div>
+                  <div class="form-group"><label>Keys (JSON: {"X":"item_id",...})</label><textarea rows="3" onchange="try{updateRecField('keys',JSON.parse(this.value))}catch(e){}">${JSON.stringify(r.keys)}</textarea></div>
+                `:''}
+                ${r.recipeType==='furnace'?`
+                  <div class="form-group"><label>Input Item</label><input type="text" value="${r.furnaceInput}" onchange="updateRecField('furnaceInput',this.value)"></div>
+                  <div class="form-group"><label>Output Item</label><input type="text" value="${r.furnaceOutput}" onchange="updateRecField('furnaceOutput',this.value)"></div>
+                `:''}
+                <div class="inline-row">
+                  <div class="form-group"><label>Result Item</label><input type="text" value="${r.resultItem}" onchange="updateRecField('resultItem',this.value)"></div>
+                  <div class="form-group"><label>Amount</label><input type="number" value="${r.resultAmount}" onchange="updateRecField('resultAmount',+this.value)"></div>
+                </div>`;
+            }
+
+            function updateRecField(key, val) { pushUndo();
+                state.recipe[key] = val;
+                updateJSONPreview(); }
+
+            // ============ SPAWN RULE EDITOR ============
+            function renderSpawnRuleEditor(panel) {
+                const sr = state.spawnRule;
+                panel.innerHTML = `
+                <h3 class="section-title">🌍 SPAWN RULE CREATOR</h3>
+                <div class="form-group"><label>Entity ID</label><input type="text" value="${sr.entityId}" onchange="updateSRField('entityId',this.value)"></div>
+                <div class="form-group"><label>Biome Filter</label><input type="text" value="${sr.biomeFilter}" onchange="updateSRField('biomeFilter',this.value)"></div>
+                <div class="inline-row">
+                  <div class="form-group"><label>Spawn Weight</label><input type="number" value="${sr.spawnWeight}" onchange="updateSRField('spawnWeight',+this.value)"></div>
+                  <div class="form-group"><label>Min Group</label><input type="number" value="${sr.minGroup}" onchange="updateSRField('minGroup',+this.value)"></div>
+                  <div class="form-group"><label>Max Group</label><input type="number" value="${sr.maxGroup}" onchange="updateSRField('maxGroup',+this.value)"></div>
+                </div>
+                <div class="inline-row">
+                  <div class="form-group"><label>Min Height</label><input type="number" value="${sr.minHeight}" onchange="updateSRField('minHeight',+this.value)"></div>
+                  <div class="form-group"><label>Max Height</label><input type="number" value="${sr.maxHeight}" onchange="updateSRField('maxHeight',+this.value)"></div>
+                </div>`;
+            }
+
+            function updateSRField(key, val) { pushUndo();
+                state.spawnRule[key] = val;
+                updateJSONPreview(); }
+
+            // ============ EXPORT PANEL ============
+            function renderExportPanel(panel) {
+                panel.innerHTML = `
+                <h3 class="section-title">📦 EXPORT CENTER</h3>
+                <p style="font-size:10px;color:#aaa;margin-bottom:10px;">Generate complete addon ZIP with behavior pack + resource pack structure.</p>
+                <div style="background:var(--surface);padding:12px;border-radius:6px;margin-bottom:10px;">
+                  <p style="font-size:10px;"><b>Project:</b> ${getProjName()}</p>
+                  <p style="font-size:10px;"><b>Namespace:</b> ${getNS()}</p>
+                  <p style="font-size:10px;"><b>BP UUID:</b> ${state.bpUUID||'Not set'}</p>
+                  <p style="font-size:10px;"><b>RP UUID:</b> ${state.rpUUID||'Not set'}</p>
+                </div>
+                <button class="btn" onclick="exportZIP()" style="font-size:12px;padding:14px 24px;">📦 EXPORT ALL AS ZIP</button>
+                <p style="font-size:9px;color:#666;margin-top:8px;">Uses JSZip library. Generates complete folder structure.</p>
+                <div style="margin-top:12px;">
+                  <h4 style="color:var(--neon);font-size:10px;">📁 Structure Preview:</h4>
+                  <pre style="font-size:9px;color:#888;background:#0a0a0a;padding:8px;border-radius:4px;">behavior_packs/${getProjName()}/
+                ├── manifest.json
+                ├── entities/
+                ├── items/
+                ├── blocks/
+                ├── loot_tables/
+                ├── recipes/
+                └── spawn_rules/
+                resource_packs/${getProjName()}/
+                ├── manifest.json
+                ├── textures/
+                ├── models/entity/
+                ├── animations/
+                └── animation_controllers/</pre>
+                </div>`;
+            }
+
+            // ============ JSON GENERATION ============
+            function generateEntityJSON() {
+                const e = state.entity;
+                const ns = getNS();
+                const components = {
+                    'minecraft:type_family': { family: ['custom'] },
+                    'minecraft:health': { value: e.health, max: e.health },
+                    'minecraft:attack': { damage: e.attackDamage },
+                    'minecraft:movement': { value: e.movementSpeed },
+                    'minecraft:knockback_resistance': { value: e.knockbackResistance },
+                    'minecraft:follow_range': { value: e.followRange },
+                    'minecraft:collision_box': { width: e.collisionWidth, height: e.collisionHeight },
+                };
+                if (e.canFly) components['minecraft:is_flying'] = {};
+                if (e.canSwim) components['minecraft:is_swimming'] = {};
+                if (e.canClimb) components['minecraft:is_climbing'] = {};
+                if (e.canTame) components['minecraft:tameable'] = {};
+                if (e.canBreed) components['minecraft:breedable'] = {};
+                if (e.canExplode) components['minecraft:is_exploding'] = {};
+                if (e.canTeleport) components['minecraft:teleport'] = {};
+                if (!e.canBurn) components['minecraft:is_fire_immune'] = {};
+                if (e.canHeal) components['minecraft:healable'] = {};
+
+                const aiGoals = [];
+                if (e.aiMelee) aiGoals.push({ priority: 1, type: 'minecraft:melee_attack' });
+                if (e.aiRanged) aiGoals.push({ priority: 2, type: 'minecraft:ranged_attack' });
+                if (e.aiStroll) aiGoals.push({ priority: 3, type: 'minecraft:random_stroll' });
+                if (e.aiFollow) aiGoals.push({ priority: 4, type: 'minecraft:follow_owner' });
+                if (e.aiPanic) aiGoals.push({ priority: 5, type: 'minecraft:panic' });
+                if (e.aiLook) aiGoals.push({ priority: 6, type: 'minecraft:look_at_player' });
+                if (e.aiAvoid) aiGoals.push({ priority: 7, type: 'minecraft:avoid_target' });
+                if (aiGoals.length > 0) components['minecraft:ai_goals'] = { goals: aiGoals };
+
+                return {
+                    format_version: '1.20.0',
+                    'minecraft:entity': {
+                        description: {
+                            identifier: e.identifier,
+                            is_spawnable: true,
+                            is_summonable: true,
+                            is_experimental: false,
+                        },
+                        components: components,
+                    },
+                };
+            }
+
+            function generateItemJSON() {
+                const it = state.item;
+                const comp = { 'minecraft:max_stack_size': it.maxStack, 'minecraft:display_name': { value: it
+                        .displayName } };
+                if (it.durability > 0) comp['minecraft:durability'] = { max_durability: it.durability };
+                if (it.itemType === 'weapon') comp['minecraft:weapon'] = { damage: it.weaponDamage,
+                    attack_speed: it.weaponSpeed };
+                if (it.itemType === 'armor') comp['minecraft:armor'] = { protection: it.armorDefense,
+                    toughness: it.armorToughness };
+                if (it.itemType === 'food') comp['minecraft:food'] = { nutrition: it.hungerRestore,
+                    saturation_modifier: it.saturation };
+                if (it.cooldown > 0) comp['minecraft:cooldown'] = { duration: it.cooldown };
+                return {
+                    format_version: '1.20.0',
+                    'minecraft:item': {
+                        description: { identifier: it.identifier, category: 'items' },
+                        components: comp,
+                    },
+                };
+            }
+
+            function generateBlockJSON() {
+                const b = state.block;
+                return {
+                    format_version: '1.20.0',
+                    'minecraft:block': {
+                        description: { identifier: b.identifier },
+                        components: {
+                            'minecraft:destructible_by_mining': { seconds_to_destroy: b.breakTime },
+                            'minecraft:friction': b.friction,
+                            'minecraft:light_emission': b.lightLevel,
+                            'minecraft:destructible_by_explosion': { explosion_resistance: b.resistance },
+                            'minecraft:display_name': b.displayName,
+                            'minecraft:collision_box': !b.transparent,
+                            'minecraft:selection_box': !b.transparent,
+                            'minecraft:climbable': b.climbable,
+                        },
+                    },
+                };
+            }
+
+            function generateGeometryJSON() {
+                const g = state.geometry;
+                const bones = g.bones.map(b => {
+                    const cubes = (b.cubes || []).map(c => ({
+                        origin: c.origin || [0, 0, 0],
+                        size: c.size || [1, 1, 1],
+                        pivot: c.pivot || [0, 0, 0],
+                        rotation: c.rotation || [0, 0, 0],
+                        uv: c.uv || [0, 0],
+                        mirror: c.mirror || false,
+                        inflate: c.inflate || 0,
+                    }));
+                    return {
+                        name: b.name,
+                        parent: b.parent || undefined,
+                        pivot: b.pivot || [0, 0, 0],
+                        rotation: b.rotation || [0, 0, 0],
+                        cubes: cubes.length > 0 ? cubes : undefined,
+                    };
+                });
+                return {
+                    format_version: '1.12.0',
+                    'minecraft:geometry': [{
+                        description: {
+                            identifier: 'geometry.' + getNS() + '.custom',
+                            texture_width: g.textureWidth,
+                            texture_height: g.textureHeight,
+                            visible_bounds_width: g.visibleBoundsWidth,
+                            visible_bounds_height: g.visibleBoundsHeight,
+                            visible_bounds_offset: g.visibleBoundsOffset,
+                        },
+                        bones: bones,
+                    }, ],
+                };
+            }
+
+            function generateAnimationJSON() {
+                const a = state.animation;
+                const bones = {};
+                const targetBone = a.targetBone || 'bone_main';
+                const kfs = a.keyframes.map(kf => ({
+                    time: kf.time,
+                    rotation: kf.rotation || [0, 0, 0],
+                    position: kf.position || [0, 0, 0],
+                    scale: kf.scale || [1, 1, 1],
+                }));
+                bones[targetBone] = {
+                    rotation: kfs.map(k => ({ time: k.time, vector: k.rotation })),
+                    position: kfs.map(k => ({ time: k.time, vector: k.position })),
+                    scale: kfs.map(k => ({ time: k.time, vector: k.scale })),
+                };
+                return {
+                    format_version: '1.8.0',
+                    animations: {
+                        [a.animName]: {
+                            loop: a.loop,
+                            animation_length: a.animLength,
+                            bones: bones,
+                        },
+                    },
+                };
+            }
+
+            function generateAnimControllerJSON() {
+                const ac = state.animController;
+                const states = {};
+                ac.states.forEach(s => {
+                    states[s.name || 'default'] = {
+                        animations: [s.animation],
+                        transitions: s.transitions || [],
+                    };
+                });
+                return {
+                    format_version: '1.10.0',
+                    animation_controllers: {
+                        [ac.controllerName]: {
+                            initial_state: ac.states[0]?.name || 'default',
+                            states: states,
+                        },
+                    },
+                };
+            }
+
+            function generateManifestBP() {
+                const m = state.manifest;
+                return {
+                    format_version: 2,
+                    header: {
+                        name: getProjName() + ' BP',
+                        description: m.description,
+                        uuid: state.bpUUID || '00000000-0000-0000-0000-000000000000',
+                        version: m.version,
+                        min_engine_version: m.minEngineVersion,
+                    },
+                    modules: [{ type: 'data', uuid: state.bpUUID || '00000000-0000-0000-0000-000000000000',
+                        version: m.version }],
+                    dependencies: [],
+                };
+            }
+
+            function generateManifestRP() {
+                const m = state.manifest;
+                return {
+                    format_version: 2,
+                    header: {
+                        name: getProjName() + ' RP',
+                        description: m.description,
+                        uuid: state.rpUUID || '11111111-1111-1111-1111-111111111111',
+                        version: m.version,
+                        min_engine_version: m.minEngineVersion,
+                    },
+                    modules: [{ type: 'resources', uuid: state.rpUUID || '11111111-1111-1111-1111-111111111111',
+                        version: m.version }],
+                };
+            }
+
+            function generateLootTableJSON() {
+                const lt = state.lootTable;
+                return {
+                    pools: lt.pools.map(p => ({
+                        rolls: { min: p.quantity, max: p.quantity },
+                        entries: [{ type: 'item', name: p.itemId, weight: p.weight, chance: p.chance }],
+                    })),
+                };
+            }
+
+            function generateRecipeJSON() {
+                const r = state.recipe;
+                if (r.recipeType === 'furnace') {
+                    return {
+                        format_version: '1.17.0',
+                        'minecraft:recipe_furnace': {
+                            description: { identifier: r.recipeId },
+                            input: r.furnaceInput,
+                            output: r.furnaceOutput,
+                        },
+                    };
+                }
+                return {
+                    format_version: '1.17.0',
+                    ['minecraft:recipe_' + r.recipeType]: {
+                        description: { identifier: r.recipeId },
+                        pattern: r.pattern,
+                        key: r.keys,
+                        result: { item: r.resultItem, count: r.resultAmount },
+                    },
+                };
+            }
+
+            function generateSpawnRuleJSON() {
+                const sr = state.spawnRule;
+                return {
+                    format_version: '1.8.0',
+                    'minecraft:spawn_rules': {
+                        description: {
+                            identifier: sr.entityId,
+                            population_control: 'monster',
+                        },
+                        conditions: [{
+                            'minecraft:spawns_on_surface': {},
+                            'minecraft:biome_filter': { any_of: [{ test: 'has_biome_tag',
+                                    value: sr.biomeFilter }] },
+                            'minecraft:weight': { default: sr.spawnWeight },
+                            'minecraft:herd': { min_size: sr.minGroup, max_size: sr.maxGroup },
+                            'minecraft:height_filter': { min: sr.minHeight, max: sr.maxHeight },
+                        }, ],
+                    },
+                };
+            }
+
+            function updateJSONPreview() {
+                const tab = state.activeTab;
+                let json = {};
+                try {
+                    switch (tab) {
+                        case 'entity':
+                            json = generateEntityJSON();
+                            break;
+                        case 'item':
+                            json = generateItemJSON();
+                            break;
+                        case 'block':
+                            json = generateBlockJSON();
+                            break;
+                        case 'geometry':
+                            json = generateGeometryJSON();
+                            break;
+                        case 'animation':
+                            json = generateAnimationJSON();
+                            break;
+                        case 'animController':
+                            json = generateAnimControllerJSON();
+                            break;
+                        case 'manifest':
+                            json = { behavior_pack: generateManifestBP(), resource_pack: generateManifestRP() };
+                            break;
+                        case 'lootTable':
+                            json = generateLootTableJSON();
+                            break;
+                        case 'recipe':
+                            json = generateRecipeJSON();
+                            break;
+                        case 'spawnRule':
+                            json = generateSpawnRuleJSON();
+                            break;
+                        case 'export':
+                            json = { message: 'Click EXPORT ALL AS ZIP to generate the full addon package.' };
+                            break;
+                    }
+                } catch (e) {
+                    json = { error: e.message };
+                }
+                const formatted = JSON.stringify(json, null, 2);
+                document.getElementById('jsonPreview').textContent = formatted;
+                if (typeof Prism !== 'undefined') {
+                    document.getElementById('jsonPreview').innerHTML = Prism.highlight(formatted, Prism.languages.json,
+                        'json');
+                }
+            }
+
+            // ============ EXPORT ZIP ============
+            async function exportZIP() {
+                if (typeof JSZip === 'undefined') {
+                    showToast('JSZip not loaded. Check CDN.');
+                    return;
+                }
+                const zip = new JSZip();
+                const bpBase = 'behavior_packs/' + getProjName() + '/';
+                const rpBase = 'resource_packs/' + getProjName() + '/';
+
+                // Behavior Pack
+                zip.file(bpBase + 'manifest.json', JSON.stringify(generateManifestBP(), null, 2));
+                zip.file(bpBase + 'entities/' + state.entity.identifier.replace(getNS() + ':', '') + '.json', JSON
+                .stringify(generateEntityJSON(), null, 2));
+                zip.file(bpBase + 'items/' + state.item.identifier.replace(getNS() + ':', '') + '.json', JSON.stringify(
+                    generateItemJSON(), null, 2));
+                zip.file(bpBase + 'blocks/' + state.block.identifier.replace(getNS() + ':', '') + '.json', JSON.stringify(
+                    generateBlockJSON(), null, 2));
+                if (state.lootTable.pools.length > 0) {
+                    zip.file(bpBase + 'loot_tables/entities/' + state.lootTable.entityType.replace('minecraft:', '') +
+                        '.json', JSON.stringify(generateLootTableJSON(), null, 2));
+                }
+                zip.file(bpBase + 'recipes/' + state.recipe.recipeId.replace(getNS() + ':', '') + '.json', JSON.stringify(
+                    generateRecipeJSON(), null, 2));
+                zip.file(bpBase + 'spawn_rules/' + state.spawnRule.entityId.replace(getNS() + ':', '') + '.json', JSON
+                    .stringify(generateSpawnRuleJSON(), null, 2));
+
+                // Resource Pack
+                zip.file(rpBase + 'manifest.json', JSON.stringify(generateManifestRP(), null, 2));
+                if (state.geometry.bones.length > 0) {
+                    zip.file(rpBase + 'models/entity/custom.geo.json', JSON.stringify(generateGeometryJSON(), null, 2));
+                }
+                if (state.animation.keyframes.length > 0) {
+                    zip.file(rpBase + 'animations/custom.animation.json', JSON.stringify(generateAnimationJSON(), null, 2));
+                }
+                if (state.animController.states.length > 0) {
+                    zip.file(rpBase + 'animation_controllers/custom.ac.json', JSON.stringify(generateAnimControllerJSON(),
+                        null, 2));
+                }
+                zip.file(rpBase + 'textures/.gitkeep', '');
+
+                const blob = await zip.generateAsync({ type: 'blob' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = getProjName() + '_addon.zip';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('ZIP Exported! ✓');
+            }
+
+            // ============ TAB SWITCHING ============
+            document.getElementById('tabBar').addEventListener('click', function(e) {
+                if (e.target.classList.contains('tab-btn')) {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    state.activeTab = e.target.dataset.tab;
+                    renderEditor();
+                }
+            });
+
+            // ============ INIT ============
+            function init() {
+                // Try load from localStorage
+                const raw = localStorage.getItem('mc_addon_studio_project');
+                if (raw) {
+                    try {
+                        const data = JSON.parse(raw);
+                        Object.assign(state, data);
+                        document.getElementById('projectName').value = state.projectName;
+                        document.getElementById('addonName').value = state.addonName;
+                        document.getElementById('namespace').value = state.namespace;
+                    } catch (e) {}
+                }
+                if (!state.bpUUID) generateUUIDs();
+                renderEditor();
+                updateJSONPreview();
+            }
+
+            // Sync header inputs
+            document.getElementById('projectName').addEventListener('input', function() { state.projectName = this
+                    .value;
+                updateJSONPreview(); });
+            document.getElementById('addonName').addEventListener('input', function() { state.addonName = this.value; });
+            document.getElementById('namespace').addEventListener('input', function() { updateJSONPreview(); });
+
+            // Expose functions globally
+            window.updateEntityField = updateEntityField;
+            window.updateItemField = updateItemField;
+            window.updateBlockField = updateBlockField;
+            window.addBone = addBone;
+            window.deleteBone = deleteBone;
+            window.selectBone = selectBone;
+            window.updateBoneField = updateBoneField;
+            window.addCube = addCube;
+            window.deleteCube = deleteCube;
+            window.updateCubeField = updateCubeField;
+            window.updateGeoField = updateGeoField;
+            window.updateAnimField = updateAnimField;
+            window.addKeyframe = addKeyframe;
+            window.deleteKF = deleteKF;
+            window.updateKF = updateKF;
+            window.updateACField = updateACField;
+            window.addACState = addACState;
+            window.deleteACState = deleteACState;
+            window.updateACState = updateACState;
+            window.updateManField = updateManField;
+            window.updateLTField = updateLTField;
+            window.addLootPool = addLootPool;
+            window.deleteLootPool = deleteLootPool;
+            window.updateLootPool = updateLootPool;
+            window.updateRecField = updateRecField;
+            window.updateSRField = updateSRField;
+            window.generateUUIDs = generateUUIDs;
+            window.saveProject = saveProject;
+            window.loadProject = loadProject;
+            window.undoAction = undoAction;
+            window.redoAction = redoAction;
+            window.copyJSON = copyJSON;
+            window.exportZIP = exportZIP;
+            window.renderEditor = renderEditor;
+            window.refreshAll = refreshAll;
+
+            init();
+        })();
+    </script>
+</body>
+</htm
