@@ -8,7 +8,7 @@
 /* ──────────────────────────────────────────────────────────
    CONSTANTS
 ────────────────────────────────────────────────────────── */
-const GITHUB_TOKEN = "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";
+const GITHUB_TOKEN = "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";
 const COLS        = 10;
 const ROWS        = 20;
 const CELL_MAX    = 30;  // max pixel size per cell
