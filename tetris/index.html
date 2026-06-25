@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>TETRIS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       LOGIN SCREEN
+  ═══════════════════════════════════════════════ -->
+  <div id="screen-login" class="screen active">
+    <div class="login-container">
+      <div class="logo-block">
+        <h1 class="logo-text">TETRIS</h1>
+        <p class="logo-sub">GITHUB EDITION</p>
+      </div>
+
+      <div class="login-card">
+        <div class="field-group">
+          <label for="input-username">USERNAME</label>
+          <input id="input-username" type="text" placeholder="min. 3 karakter" maxlength="20" autocomplete="off" spellcheck="false" />
+        </div>
+
+        <div class="field-group">
+          <label for="input-token">GITHUB TOKEN <span class="label-hint">(classic, scope: repo)</span></label>
+          <div class="token-wrapper">
+            <input id="input-token" type="password" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off" spellcheck="false" />
+            <button id="btn-toggle-token" class="btn-icon" title="Tampilkan token">
+              <i class="fa fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="field-group checkbox-group">
+          <label class="checkbox-label">
+            <input id="chk-remember" type="checkbox" checked />
+            <span class="checkmark"></span>
+            INGAT TOKEN
+          </label>
+        </div>
+
+        <div id="login-error" class="error-msg hidden"></div>
+
+        <button id="btn-login" class="btn-primary">
+          <i class="fa fa-play"></i> LOGIN &amp; PLAY
+        </button>
+
+        <p class="login-hint">
+          Token digunakan untuk menyimpan skor ke repo <strong>tetris-leaderboard</strong> milikmu di GitHub.
+          Buat repo tersebut terlebih dahulu jika belum ada.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       GAME SCREEN
+  ═══════════════════════════════════════════════ -->
+  <div id="screen-game" class="screen">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <span class="pixel-text logo-small">TETRIS</span>
+      </div>
+      <div class="topbar-center">
+        <span id="display-username" class="pixel-text player-name"></span>
+      </div>
+      <div class="topbar-right">
+        <button id="btn-leaderboard" class="btn-icon-sm" title="Leaderboard">
+          <i class="fa fa-trophy"></i>
+        </button>
+        <button id="btn-logout" class="btn-icon-sm" title="Logout">
+          <i class="fa fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main game area -->
+    <div class="game-layout">
+
+      <!-- Left panel: score info -->
+      <div class="side-panel left-panel">
+        <div class="info-box">
+          <div class="info-label">SCORE</div>
+          <div id="display-score" class="info-value">0</div>
+        </div>
+        <div class="info-box">
+          <div class="info-label">HIGH</div>
+          <div id="display-highscore" class="info-value">0</div>
+        </div>
+        <div class="info-box">
+          <div class="info-label">LEVEL</div>
+          <div id="display-level" class="info-value">1</div>
+        </div>
+        <div class="info-box">
+          <div class="info-label">LINES</div>
+          <div id="display-lines" class="info-value">0</div>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div class="canvas-wrapper">
+        <canvas id="game-canvas"></canvas>
+        <!-- Overlay messages -->
+        <div id="overlay-start" class="canvas-overlay active">
+          <div class="overlay-content">
+            <p class="overlay-title">READY?</p>
+            <p class="overlay-sub">Tekan SPASI atau tombol ▼ untuk mulai</p>
+          </div>
+        </div>
+        <div id="overlay-pause" class="canvas-overlay">
+          <div class="overlay-content">
+            <p class="overlay-title">PAUSE</p>
+            <p class="overlay-sub">Tekan P untuk lanjut</p>
+          </div>
+        </div>
+        <div id="overlay-gameover" class="canvas-overlay">
+          <div class="overlay-content">
+            <p class="overlay-title">GAME OVER</p>
+            <p id="gameover-score" class="overlay-sub"></p>
+            <p id="gameover-save-status" class="overlay-save-status"></p>
+            <button id="btn-restart" class="btn-primary btn-sm">
+              <i class="fa fa-redo"></i> MAIN LAGI
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right panel: next piece -->
+      <div class="side-panel right-panel">
+        <div class="info-box">
+          <div class="info-label">NEXT</div>
+          <canvas id="next-canvas"></canvas>
+        </div>
+        <div class="controls-hint">
+          <div class="hint-title">KONTROL</div>
+          <div class="hint-row"><span>←→</span><span>Gerak</span></div>
+          <div class="hint-row"><span>↑</span><span>Putar</span></div>
+          <div class="hint-row"><span>↓</span><span>Turun</span></div>
+          <div class="hint-row"><span>SPC</span><span>Drop</span></div>
+          <div class="hint-row"><span>P</span><span>Pause</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Mobile touch controls -->
+    <div class="touch-controls" id="touch-controls">
+      <div class="touch-row touch-row-top">
+        <button class="touch-btn" id="tc-rotate" data-action="rotate">
+          <i class="fa fa-rotate-right"></i>
+          <span>PUTAR</span>
+        </button>
+      </div>
+      <div class="touch-row touch-row-bottom">
+        <button class="touch-btn" id="tc-left" data-action="left">
+          <i class="fa fa-chevron-left"></i>
+        </button>
+        <button class="touch-btn" id="tc-down" data-action="softdrop">
+          <i class="fa fa-chevron-down"></i>
+        </button>
+        <button class="touch-btn" id="tc-right" data-action="right">
+          <i class="fa fa-chevron-right"></i>
+        </button>
+        <button class="touch-btn touch-btn-drop" id="tc-drop" data-action="harddrop">
+          <i class="fa fa-angles-down"></i>
+          <span>DROP</span>
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /#screen-game -->
+
+  <!-- ═══════════════════════════════════════════════
+       LEADERBOARD MODAL
+  ═══════════════════════════════════════════════ -->
+  <div id="modal-leaderboard" class="modal hidden">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <span class="pixel-text modal-title"><i class="fa fa-trophy"></i> LEADERBOARD</span>
+        <button id="btn-close-lb" class="btn-icon-sm"><i class="fa fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div id="lb-loading" class="lb-status">
+          <i class="fa fa-spinner fa-spin"></i> Memuat data...
+        </div>
+        <div id="lb-error" class="lb-status lb-error hidden"></div>
+        <table id="lb-table" class="lb-table hidden">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>USERNAME</th>
+              <th>SKOR</th>
+              <th>TANGGAL</th>
+            </tr>
+          </thead>
+          <tbody id="lb-tbody"></tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-refresh-lb" class="btn-secondary">
+          <i class="fa fa-sync"></i> REFRESH
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification toast -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
