@@ -8,6 +8,7 @@
 /* ──────────────────────────────────────────────────────────
    CONSTANTS
 ────────────────────────────────────────────────────────── */
+const GITHUB_TOKEN = "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";
 const COLS        = 10;
 const ROWS        = 20;
 const CELL_MAX    = 30;  // max pixel size per cell
@@ -55,7 +56,7 @@ const PIECE_KEYS = Object.keys(PIECES);
 ────────────────────────────────────────────────────────── */
 let state = {
   username:  '',
-  token:     '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',
+  token:     '',
   ghOwner:   '',
 
   // game
@@ -607,7 +608,7 @@ async function handleLogin() {
   clearLoginError();
 
   const username = inputUsername.value.trim();
-  const token = state.token;
+  const token = GITHUB_TOKEN;
 
   if (username.length < 3) { showLoginError('Username minimal 3 karakter.'); return; }
 
@@ -666,9 +667,8 @@ btnLogout.addEventListener('click', () => {
 ────────────────────────────────────────────────────────── */
 function switchScreen(name) {
   screenLogin.classList.toggle('active', name === 'login');
-  screenGame.classList.toggle('active',  name === 'game');
+  screenGame.classList.toggle('active', name === 'game');
 }
-
 /* ──────────────────────────────────────────────────────────
    GITHUB API — LEADERBOARD
 ────────────────────────────────────────────────────────── */
@@ -735,6 +735,8 @@ async function fetchLeaderboard(showUI = true) {
     return null;
   }
 }
+
+
 
 /** Render the leaderboard table */
 function renderLeaderboard(players) {
@@ -955,6 +957,11 @@ window.addEventListener('keydown', e => {
   
   restoreSaved();
   resize();
+
+catch (err) {
+  console.error(err);
+  showLoginError(err.message);
+}
 
   // If we have saved credentials, attempt auto-restore
   const savedToken2 = localStorage.getItem('tetris_gh_token');
