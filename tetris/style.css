@@ -742,3 +742,35 @@ input:focus {
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--cyan-dim); }
+
+/* ── Token wrapper ────────────────────────────────────────── */
+.token-wrapper {
+  position: relative;
+  display: flex;
+}
+
+.token-wrapper input { 
+  padding-right: 44px; 
+  flex: 1;
+}
+
+.token-wrapper .btn-icon {
+  position: absolute;
+  right: 0; 
+  top: 0; 
+  bottom: 0;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 0 14px;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.token-wrapper .btn-icon:hover { 
+  color: var(--cyan); 
+}
