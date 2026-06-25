@@ -86,7 +86,6 @@ const screenGame    = $('screen-game');
 const inputUsername = $('input-username');
 const inputToken    = { value: state.token };
 const chkRemember   = { checked: false };
-const btnToggleToken= null;
 const loginError    = $('login-error');
 const btnLogin      = $('btn-login');
 
@@ -568,7 +567,6 @@ function clearLoginError() {
 
   const isPassword = inputToken.type === 'password';
   inputToken.type = isPassword ? 'text' : 'password';
-  btnToggleTokenEye.className = isPassword ? 'fa fa-eye-slash' : 'fa fa-eye';
 });
 
 /** Restore saved credentials */
