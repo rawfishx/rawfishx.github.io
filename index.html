@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚔️ Card Generator - TCG RPG Premium</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js">
+    </script>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --panel-bg: #111118;
+            --text: #e0d8c8;
+            --text-secondary: #a09888;
+            --accent: #c8a040;
+            --input-bg: #1a1a24;
+            --input-border: #2a2a38;
+            --input-focus: #3a3040;
+            --danger: #c0392b;
+            --font-title: 'Georgia', 'Times New Roman', serif;
+            --font-body: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            --font-card: 'Georgia', 'Palatino', serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse at 50% 0%, #1a1025 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, #0d1520 0%, transparent 50%),
+                radial-gradient(ellipse at 20% 80%, #150d10 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 100%, #0a0a15 0%, transparent 50%);
+            font-family: var(--font-body);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 10px;
+            background-attachment: fixed;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        /* === MAIN CONTAINER === */
+        .main-container {
+            display: flex;
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        /* === FORM PANEL === */
+        .form-panel {
+            background: var(--panel-bg);
+            border: 1px solid #252535;
+            border-radius: 20px;
+            padding: 28px 24px;
+            width: 420px;
+            max-width: 100%;
+            flex-shrink: 0;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            position: relative;
+            overflow-y: auto;
+            max-height: 90vh;
+            scrollbar-width: thin;
+            scrollbar-color: #333 transparent;
+        }
+        .form-panel::-webkit-scrollbar {
+            width: 5px;
+        }
+        .form-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .form-panel::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 10px;
+        }
+
+        .form-panel h2 {
+            font-family: var(--font-title);
+            text-align: center;
+            font-size: 1.6em;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            background: linear-gradient(180deg, #f0d080 0%, #b89040 50%, #805020 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .form-panel h2 .icon-title {
+            -webkit-text-fill-color: initial;
+            display: inline;
+        }
+
+        .form-section {
+            margin-bottom: 16px;
+        }
+        .form-section label {
+            display: block;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #b0a090;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .form-section input[type="text"],
+        .form-section input[type="number"],
+        .form-section textarea,
+        .form-section select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 10px;
+            color: #e0d8c8;
+            font-family: var(--font-body);
+            font-size: 0.9em;
+            transition: all 0.3s;
+            outline: none;
+            resize: vertical;
+        }
+        .form-section input:focus,
+        .form-section textarea:focus,
+        .form-section select:focus {
+            border-color: #6a5080;
+            box-shadow: 0 0 20px rgba(120, 80, 160, 0.3);
+            background: #1e1e2c;
+        }
+        .form-section textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+        .form-section select {
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b0a090' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 35px;
+        }
+        .form-section select option {
+            background: #1a1a24;
+            color: #e0d8c8;
+        }
+
+        .form-section input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            background: var(--input-bg);
+            border: 2px dashed var(--input-border);
+            border-radius: 10px;
+            color: #b0a090;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        .form-section input[type="file"]:hover {
+            border-color: #6a5080;
+            background: #1e1e2c;
+        }
+        .form-section input[type="file"]::file-selector-button {
+            background: #2a2040;
+            color: #c8b8e0;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .form-section input[type="file"]::file-selector-button:hover {
+            background: #3a3060;
+        }
+
+        .stats-grid-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .stats-grid-form .stat-field {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .stats-grid-form .stat-field label {
+            font-size: 0.7em;
+            letter-spacing: 1px;
+            margin-bottom: 0;
+            color: #908070;
+        }
+        .stats-grid-form .stat-field input {
+            padding: 8px 10px;
+            font-size: 0.8em;
+            border-radius: 8px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9em;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            font-family: var(--font-body);
+            position: relative;
+            overflow: hidden;
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+        }
+        .btn-random {
+            background: linear-gradient(135deg, #3a2050, #2a1040);
+            color: #c8a8e0;
+            border: 1px solid #5a4080;
+            box-shadow: 0 4px 15px rgba(80, 40, 120, 0.3);
+        }
+        .btn-random:hover {
+            background: linear-gradient(135deg, #4a3070, #3a2050);
+            box-shadow: 0 6px 25px rgba(100, 50, 150, 0.5);
+            transform: translateY(-2px);
+        }
+        .btn-random:active {
+            transform: scale(0.96);
+        }
+        .btn-download {
+            background: linear-gradient(135deg, #3a3010, #2a2008);
+            color: #e0c860;
+            border: 1px solid #6a5020;
+            box-shadow: 0 4px 15px rgba(120, 90, 30, 0.3);
+        }
+        .btn-download:hover {
+            background: linear-gradient(135deg, #5a4a20, #3a3010);
+            box-shadow: 0 6px 25px rgba(160, 120, 40, 0.5);
+            transform: translateY(-2px);
+        }
+        .btn-download:active {
+            transform: scale(0.96);
+        }
+        .btn-icon {
+            margin-right: 6px;
+        }
+
+        /* === CARD PANEL === */
+        .card-panel {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1200px;
+            position: sticky;
+            top: 20px;
+        }
+
+        /* === CARD WRAPPER (untuk tilt) === */
+        .card-wrapper {
+            transition: transform 0.15s ease-out;
+            transform-style: preserve-3d;
+        }
+
+        /* === THE CARD === */
+        .card {
+            width: 380px;
+            max-width: 94vw;
+            aspect-ratio: 2.5 / 3.6;
+            border-radius: 18px;
+            position: relative;
+            background: #1a1a22;
+            cursor: default;
+            box-shadow: 0 0 0 3px var(--rarity-color, #888),
+                0 0 25px var(--rarity-glow, rgba(150, 150, 150, 0.4)),
+                0 0 60px var(--rarity-glow-2, rgba(150, 150, 150, 0.15)),
+                0 20px 50px rgba(0, 0, 0, 0.7),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            overflow: hidden;
+            transition: box-shadow 0.5s, transform 0.15s ease-out;
+            font-family: var(--font-card);
+            /* Metallic gradient base */
+            background-image:
+                linear-gradient(160deg, #1e1e2a 0%, #181820 30%, #1c1c28 50%, #15151d 70%, #1a1a24 100%);
+        }
+
+        /* Rarity glow overlay */
+        .card-rarity-aura {
+            position: absolute;
+            inset: -4px;
+            border-radius: 20px;
+            pointer-events: none;
+            z-index: 0;
+            background: transparent;
+            box-shadow: 0 0 40px var(--rarity-glow, transparent),
+                0 0 80px var(--rarity-glow-2, transparent);
+            opacity: 0.8;
+            transition: all 0.5s;
+            animation: auraPulse 2.5s ease-in-out infinite;
+        }
+        @keyframes auraPulse {
+            0%,
+            100% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* Holographic overlay */
+        .card-holo {
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            pointer-events: none;
+            z-index: 8;
+            background:
+                linear-gradient(25deg,
+                    transparent 30%,
+                    rgba(255, 255, 255, 0.015) 35%,
+                    rgba(255, 255, 255, 0.04) 40%,
+                    rgba(255, 255, 255, 0.015) 45%,
+                    transparent 50%),
+                linear-gradient(160deg,
+                    transparent 40%,
+                    rgba(200, 180, 255, 0.02) 50%,
+                    transparent 60%),
+                linear-gradient(220deg,
+                    transparent 45%,
+                    rgba(255, 220, 180, 0.03) 55%,
+                    transparent 65%);
+            animation: holoShift 6s ease-in-out infinite;
+            mix-blend-mode: overlay;
+        }
+        @keyframes holoShift {
+            0%,
+            100% {
+                opacity: 0.7;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* Light sweep */
+        .card-sweep {
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            pointer-events: none;
+            z-index: 9;
+            background: linear-gradient(105deg,
+                    transparent 35%,
+                    rgba(255, 255, 255, 0) 44%,
+                    rgba(255, 255, 255, 0.08) 46%,
+                    rgba(255, 255, 255, 0.12) 48%,
+                    rgba(255, 255, 255, 0.04) 50%,
+                    rgba(255, 255, 255, 0) 52%,
+                    transparent 65%);
+            animation: sweepMove 4s ease-in-out infinite;
+            opacity: 0.7;
+        }
+        @keyframes sweepMove {
+            0% {
+                background-position: -150% center;
+            }
+            100% {
+                background-position: 250% center;
+            }
+        }
+
+        /* Particle sparkles */
+        .card-sparkles {
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            pointer-events: none;
+            z-index: 10;
+            overflow: hidden;
+        }
+        .sparkle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            animation: sparkleFloat 3s ease-in-out infinite;
+            opacity: 0;
+            box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.7);
+        }
+        @keyframes sparkleFloat {
+            0% {
+                opacity: 0;
+                transform: translateY(0) scale(0);
+            }
+            10% {
+                opacity: 0.9;
+            }
+            30% {
+                opacity: 0.3;
+                transform: translateY(-30px) scale(1.5);
+            }
+            60% {
+                opacity: 0.7;
+                transform: translateY(-15px) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-40px) scale(0);
+            }
+        }
+
+        /* Card content layers */
+        .card-inner {
+            position: relative;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        /* Image area */
+        .card-image-container {
+            width: 100%;
+            height: 38%;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #0d0d15;
+            border-bottom: 3px solid var(--rarity-color, #555);
+            transition: border-color 0.5s;
+        }
+        .card-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s;
+        }
+        .card-image-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(to top, rgba(26, 26, 34, 0.9) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
+        .card-image-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #111118;
+            color: #444;
+            font-size: 3em;
+        }
+
+        /* Header area */
+        .card-header {
+            padding: 8px 14px 4px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            z-index: 5;
+            position: relative;
+        }
+        .card-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #f8f0e0;
+            text-shadow: 0 0 10px var(--rarity-glow, rgba(200, 180, 150, 0.5));
+            font-family: var(--font-title);
+            flex: 1 1 auto;
+            min-width: 100px;
+            transition: color 0.5s, text-shadow 0.5s;
+        }
+        .card-badges {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            z-index: 5;
+        }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.65em;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-family: var(--font-body);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            white-space: nowrap;
+            transition: all 0.5s;
+        }
+        .badge-rarity {
+            background: var(--rarity-color, #888);
+            color: #fff;
+            text-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        .badge-role {
+            background: var(--role-color, #555);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        .badge-element {
+            background: var(--element-color, #444);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Stats grid */
+        .card-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3px 8px;
+            padding: 6px 14px;
+            z-index: 5;
+            position: relative;
+        }
+        .card-stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.7em;
+            color: #c8c0b0;
+            font-family: var(--font-body);
+            letter-spacing: 0.5px;
+            padding: 3px 6px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            transition: all 0.5s;
+        }
+        .card-stat-item .stat-icon {
+            font-size: 1.1em;
+            flex-shrink: 0;
+        }
+        .card-stat-item .stat-label {
+            flex: 1;
+            font-weight: 500;
+        }
+        .card-stat-item .stat-value {
+            font-weight: 700;
+            color: #f0e0c0;
+            text-shadow: 0 0 4px rgba(200, 180, 140, 0.4);
+        }
+
+        /* Resource bar */
+        .card-resource-bar {
+            margin: 2px 14px;
+            padding: 5px 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 5;
+            position: relative;
+            font-family: var(--font-body);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .card-resource-bar .res-icon {
+            font-size: 1.3em;
+        }
+        .card-resource-bar .res-name {
+            font-weight: 700;
+            font-size: 0.75em;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #d0c8b8;
+        }
+        .card-resource-bar .res-bar-fill {
+            flex: 1;
+            height: 8px;
+            background: #222;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .card-resource-bar .res-fill-inner {
+            height: 100%;
+            border-radius: 10px;
+            background: var(--resource-color, #888);
+            width: 70%;
+            transition: all 0.5s;
+            animation: resourceGlow 2s ease-in-out infinite;
+        }
+        @keyframes resourceGlow {
+            0%,
+            100% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.4);
+            }
+        }
+
+        /* Ability box */
+        .card-ability {
+            margin: 6px 14px;
+            padding: 10px 12px;
+            background: rgba(0, 0, 0, 0.45);
+            border: 2px solid var(--rarity-color, #555);
+            border-radius: 10px;
+            z-index: 5;
+            position: relative;
+            transition: border-color 0.5s;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+        .card-ability .ability-name {
+            font-weight: 700;
+            font-size: 0.8em;
+            letter-spacing: 1px;
+            color: #f0d870;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+            text-shadow: 0 0 8px rgba(200, 160, 60, 0.5);
+        }
+        .card-ability .ability-desc {
+            font-size: 0.68em;
+            color: #c0b8a8;
+            line-height: 1.4;
+            font-style: italic;
+        }
+
+        /* Passive box */
+        .card-passive {
+            margin: 4px 14px 10px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            z-index: 5;
+            position: relative;
+            text-align: center;
+        }
+        .card-passive .passive-label {
+            font-size: 0.6em;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #908070;
+            margin-bottom: 2px;
+            font-weight: 600;
+        }
+        .card-passive .passive-text {
+            font-size: 0.68em;
+            color: #b0a898;
+            font-style: italic;
+            letter-spacing: 0.5px;
+        }
+
+        /* Bottom frame accent */
+        .card-bottom-accent {
+            height: 3px;
+            margin: 0 14px 8px;
+            background: linear-gradient(90deg, transparent, var(--rarity-color, #555), transparent);
+            border-radius: 2px;
+            z-index: 5;
+            position: relative;
+            transition: all 0.5s;
+            opacity: 0.8;
+        }
+
+        /* === MYTHIC RAINBOW === */
+        .card.mythic-rainbow .card-rarity-aura {
+            animation: rainbowGlow 2s linear infinite, auraPulse 2.5s ease-in-out infinite;
+        }
+        @keyframes rainbowGlow {
+            0% {
+                box-shadow: 0 0 40px #ff0040, 0 0 80px rgba(255, 0, 60, 0.5);
+            }
+            16% {
+                box-shadow: 0 0 40px #ff8000, 0 0 80px rgba(255, 130, 0, 0.5);
+            }
+            33% {
+                box-shadow: 0 0 40px #ffe000, 0 0 80px rgba(255, 220, 0, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 40px #00ff60, 0 0 80px rgba(0, 255, 100, 0.5);
+            }
+            66% {
+                box-shadow: 0 0 40px #0080ff, 0 0 80px rgba(0, 130, 255, 0.5);
+            }
+            83% {
+                box-shadow: 0 0 40px #c000ff, 0 0 80px rgba(190, 0, 255, 0.5);
+            }
+            100% {
+                box-shadow: 0 0 40px #ff0040, 0 0 80px rgba(255, 0, 60, 0.5);
+            }
+        }
+        .card.mythic-rainbow .card-holo {
+            background:
+                linear-gradient(25deg, transparent 30%, rgba(255, 255, 255, 0.03) 35%, rgba(255, 255, 255, 0.06) 40%, rgba(255, 255, 255, 0.03) 45%, transparent 50%),
+                linear-gradient(160deg, transparent 35%, rgba(255, 100, 150, 0.04) 45%, rgba(100, 180, 255, 0.04) 55%, transparent 65%),
+                linear-gradient(220deg, transparent 40%, rgba(255, 200, 100, 0.04) 50%, rgba(200, 100, 255, 0.04) 60%, transparent 70%);
+            animation: holoShift 4s ease-in-out infinite;
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+                padding: 10px 0;
+            }
+            .form-panel {
+                width: 100%;
+                max-width: 500px;
+                max-height: none;
+                overflow-y: visible;
+                padding: 20px 16px;
+                border-radius: 16px;
+            }
+            .card-panel {
+                position: static;
+                top: auto;
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+            .card {
+                width: 340px;
+                max-width: 92vw;
+                aspect-ratio: 2.5 / 3.6;
+                border-radius: 14px;
+            }
+            .card-image-container {
+                height: 35%;
+            }
+            .card-name {
+                font-size: 1.1em;
+            }
+            .card-stat-item {
+                font-size: 0.62em;
+                padding: 2px 4px;
+                gap: 3px;
+            }
+            .card-ability {
+                padding: 7px 10px;
+                margin: 4px 10px;
+            }
+            .card-ability .ability-name {
+                font-size: 0.7em;
+            }
+            .card-ability .ability-desc {
+                font-size: 0.6em;
+            }
+            .card-passive {
+                padding: 6px 10px;
+                margin: 3px 10px 8px;
+            }
+            .card-passive .passive-text {
+                font-size: 0.6em;
+            }
+            .card-resource-bar {
+                margin: 2px 10px;
+                padding: 4px 8px;
+            }
+            .card-stats {
+                padding: 4px 10px;
+                gap: 2px 6px;
+            }
+            .badge {
+                font-size: 0.55em;
+                padding: 3px 7px;
+            }
+            .card-header {
+                padding: 6px 10px 2px;
+                gap: 4px;
+            }
+            .card-bottom-accent {
+                margin: 0 10px 6px;
+            }
+            .stats-grid-form {
+                grid-template-columns: 1fr 1fr;
+                gap: 5px;
+            }
+            .btn {
+                font-size: 0.8em;
+                padding: 10px 14px;
+            }
+            .form-panel h2 {
+                font-size: 1.3em;
+            }
+        }
+        @media (max-width: 400px) {
+            .card {
+                width: 300px;
+                max-width: 95vw;
+                aspect-ratio: 2.5 / 3.7;
+                border-radius: 12px;
+            }
+            .card-image-container {
+                height: 32%;
+            }
+            .card-name {
+                font-size: 1em;
+            }
+            .card-stat-item {
+                font-size: 0.55em;
+                gap: 2px;
+            }
+            .stats-grid-form {
+                grid-template-columns: 1fr;
+                gap: 4px;
+            }
+            .btn-row {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <!-- ============ FORM PANEL ============ -->
+        <div class="form-panel" id="formPanel">
+            <h2><span class="icon-title">⚔️</span> Card Generator</h2>
+
+            <!-- Upload Image -->
+            <div class="form-section">
+                <label>🖼️ Upload Gambar Karakter</label>
+                <input type="file" id="imageUpload" accept="image/*" title="Pilih gambar dari device">
+            </div>
+
+            <!-- Basic Info -->
+            <div class="form-section">
+                <label>📛 Nama Karakter</label>
+                <input type="text" id="charName" placeholder="Masukkan nama karakter..." value="Aldric Stormblade">
+            </div>
+
+            <!-- Role -->
+            <div class="form-section">
+                <label>🎭 Role</label>
+                <select id="roleSelect">
+                    <option value="fighter">⚔️ Fighter</option>
+                    <option value="mage">🔮 Mage</option>
+                    <option value="tank">🛡️ Tank</option>
+                    <option value="assassin">🗡️ Assassin</option>
+                    <option value="marksman">🏹 Marksman</option>
+                    <option value="support">✨ Support</option>
+                </select>
+            </div>
+
+            <!-- Element -->
+            <div class="form-section">
+                <label>🌍 Element</label>
+                <select id="elementSelect">
+                    <option value="fire">🔥 Fire</option>
+                    <option value="water">💧 Water</option>
+                    <option value="earth">🪨 Earth</option>
+                    <option value="wind">🌪️ Wind</option>
+                    <option value="dark">🌑 Dark</option>
+                    <option value="light">☀️ Light</option>
+                </select>
+            </div>
+
+            <!-- Rarity -->
+            <div class="form-section">
+                <label>💎 Rarity</label>
+                <select id="raritySelect">
+                    <option value="common">⬜ Common</option>
+                    <option value="rare">🟦 Rare</option>
+                    <option value="epic">🟣 Epic</option>
+                    <option value="legendary">🟡 Legendary</option>
+                    <option value="mythic">🔴 Mythic</option>
+                </select>
+            </div>
+
+            <!-- Dynamic Stats -->
+            <div class="form-section">
+                <label id="statsLabel">📊 Stats (<span id="resourceLabel">Stamina</span>)</label>
+                <div class="stats-grid-form" id="statsGridForm">
+                    <!-- Generated by JS -->
+                </div>
+            </div>
+
+            <!-- Random Stats Button -->
+            <div class="btn-row" style="margin-top:4px;">
+                <button class="btn btn-random" id="btnRandom" type="button">
+                    <span class="btn-icon">🎲</span> Random Stats
+                </button>
+            </div>
+
+            <!-- Ability -->
+            <div class="form-section">
+                <label>⚡ Ability Name</label>
+                <input type="text" id="abilityName" placeholder="Nama ability..." value="Thunder Slash">
+            </div>
+            <div class="form-section">
+                <label>📝 Ability Description</label>
+                <textarea id="abilityDesc" placeholder="Deskripsi ability..." rows="3">Deals massive lightning damage to all enemies in range. Ignores 30% of target's defense.</textarea>
+            </div>
+
+            <!-- Passive -->
+            <div class="form-section">
+                <label>🌀 Passive Skill</label>
+                <textarea id="passiveSkill" placeholder="Deskripsi passive skill..." rows="2">Gains 15% increased critical strike chance when HP is below 50%.</textarea>
+            </div>
+
+            <!-- Download Button -->
+            <div class="btn-row">
+                <button class="btn btn-download" id="btnDownload" type="button">
+                    <span class="btn-icon">📥</span> Download Card (PNG)
+                </button>
+            </div>
+        </div>
+
+        <!-- ============ CARD PANEL ============ -->
+        <div class="card-panel" id="cardPanel">
+            <div class="card-wrapper" id="cardWrapper">
+                <div class="card" id="theCard">
+                    <!-- Rarity aura -->
+                    <div class="card-rarity-aura" id="cardAura"></div>
+                    <!-- Holographic overlay -->
+                    <div class="card-holo"></div>
+                    <!-- Light sweep -->
+                    <div class="card-sweep"></div>
+                    <!-- Sparkles -->
+                    <div class="card-sparkles" id="cardSparkles"></div>
+                    <!-- Inner content -->
+                    <div class="card-inner">
+                        <!-- Image -->
+                        <div class="card-image-container" id="cardImageContainer">
+                            <div class="card-image-placeholder" id="imagePlaceholder">🖼️</div>
+                            <img id="cardImage" src="" alt="Character" style="display:none;">
+                        </div>
+                        <!-- Header -->
+                        <div class="card-header">
+                            <span class="card-name" id="cardNameDisplay">Aldric Stormblade</span>
+                            <div class="card-badges">
+                                <span class="badge badge-rarity" id="badgeRarity">Rare</span>
+                                <span class="badge badge-role" id="badgeRole">Fighter</span>
+                                <span class="badge badge-element" id="badgeElement">Fire</span>
+                            </div>
+                        </div>
+                        <!-- Resource bar -->
+                        <div class="card-resource-bar" id="cardResourceBar">
+                            <span class="res-icon" id="resIcon">🟢</span>
+                            <span class="res-name" id="resName">Stamina</span>
+                            <div class="res-bar-fill">
+                                <div class="res-fill-inner" id="resFillInner"></div>
+                            </div>
+                        </div>
+                        <!-- Stats grid -->
+                        <div class="card-stats" id="cardStatsGrid">
+                            <!-- Generated by JS -->
+                        </div>
+                        <!-- Ability -->
+                        <div class="card-ability" id="cardAbilityBox">
+                            <div class="ability-name" id="cardAbilityName">Thunder Slash</div>
+                            <div class="ability-desc" id="cardAbilityDesc">Deals massive lightning damage to all enemies in range. Ignores 30% of target's defense.</div>
+                        </div>
+                        <!-- Passive -->
+                        <div class="card-passive" id="cardPassiveBox">
+                            <div class="passive-label">🌀 Passive</div>
+                            <div class="passive-text" id="cardPassiveText">Gains 15% increased critical strike chance when HP is below 50%.</div>
+                        </div>
+                        <!-- Bottom accent -->
+                        <div class="card-bottom-accent" id="cardBottomAccent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // === DOM REFERENCES ===
+            const imageUpload = document.getElementById('imageUpload');
+            const cardImage = document.getElementById('cardImage');
+            const imagePlaceholder = document.getElementById('imagePlaceholder');
+            const charNameInput = document.getElementById('charName');
+            const roleSelect = document.getElementById('roleSelect');
+            const elementSelect = document.getElementById('elementSelect');
+            const raritySelect = document.getElementById('raritySelect');
+            const abilityNameInput = document.getElementById('abilityName');
+            const abilityDescInput = document.getElementById('abilityDesc');
+            const passiveSkillInput = document.getElementById('passiveSkill');
+            const btnRandom = document.getElementById('btnRandom');
+            const btnDownload = document.getElementById('btnDownload');
+            const statsGridForm = document.getElementById('statsGridForm');
+            const cardStatsGrid = document.getElementById('cardStatsGrid');
+            const cardNameDisplay = document.getElementById('cardNameDisplay');
+            const badgeRarity = document.getElementById('badgeRarity');
+            const badgeRole = document.getElementById('badgeRole');
+            const badgeElement = document.getElementById('badgeElement');
+            const cardAbilityName = document.getElementById('cardAbilityName');
+            const cardAbilityDesc = document.getElementById('cardAbilityDesc');
+            const cardPassiveText = document.getElementById('cardPassiveText');
+            const cardAura = document.getElementById('cardAura');
+            const cardSparkles = document.getElementById('cardSparkles');
+            const cardWrapper = document.getElementById('cardWrapper');
+            const theCard = document.getElementById('theCard');
+            const cardResourceBar = document.getElementById('cardResourceBar');
+            const resIcon = document.getElementById('resIcon');
+            const resName = document.getElementById('resName');
+            const resFillInner = document.getElementById('resFillInner');
+            const cardBottomAccent = document.getElementById('cardBottomAccent');
+            const resourceLabel = document.getElementById('resourceLabel');
+            const cardImageContainer = document.getElementById('cardImageContainer');
+
+            // === ROLE CONFIGURATION ===
+            const roleConfig = {
+                fighter: {
+                    resource: { name: 'Stamina', icon: '🟢', color: '#4CAF50' },
+                    stats: [
+                        { name: 'HP', icon: '❤️', key: 'hp', min: 1000, max: 5000, suffix: '' },
+                        { name: 'ATK', icon: '⚔️', key: 'atk', min: 100, max: 1000, suffix: '' },
+                        { name: 'DEF', icon: '🛡️', key: 'def', min: 50, max: 500, suffix: '' },
+                        { name: 'Speed', icon: '💨', key: 'speed', min: 1, max: 300, suffix: '' },
+                        { name: 'Stamina', icon: '🟢', key: 'stamina', min: 10, max: 500, suffix: '' },
+                        { name: 'Crit Rate', icon: '💥', key: 'crit', min: 1, max: 100, suffix: '%' },
+                    ],
+                    themeColor: '#E85D3A',
+                    themeColorHex: '#E85D3A',
+                    roleDisplay: 'Fighter',
+                    roleIcon: '⚔️',
+                },
+                mage: {
+                    resource: { name: 'Mana', icon: '🔷', color: '#4488FF' },
+                    stats: [
+                        { name: 'HP', icon: '❤️', key: 'hp', min: 500, max: 3000, suffix: '' },
+                        { name: 'Magic ATK', icon: '🔮', key: 'matk', min: 200, max: 1200, suffix: '' },
+                        { name: 'Mana', icon: '🔷', key: 'mana', min: 100, max: 800, suffix: '' },
+                        { name: 'Mana Regen', icon: '♻️', key: 'mana_regen', min: 1, max: 100, suffix: '' },
+                        { name: 'Cast Speed', icon: '⚡', key: 'cast_speed', min: 1, max: 300, suffix: '' },
+                        { name: 'Crit Rate', icon: '💥', key: 'crit', min: 1, max: 100, suffix: '%' },
+                    ],
+                    themeColor: '#5577DD',
+                    themeColorHex: '#5577DD',
+                    roleDisplay: 'Mage',
+                    roleIcon: '🔮',
+                },
+                tank: {
+                    resource: { name: 'Rage', icon: '🔥', color: '#E89030' },
+                    stats: [
+                        { name: 'HP', icon: '❤️', key: 'hp', min: 2000, max: 8000, suffix: '' },
+                        { name: 'DEF', icon: '🛡️', key: 'def', min: 100, max: 1000, suffix: '' },
+                        { name: 'Magic Resist', icon: '🪨', key: 'magic_resist', min: 10, max: 500, suffix: '' },
+                        { name: 'Block Rate', icon: '🧱', key: 'block_rate', min: 1, max: 50, suffix: '%' },
+                        { name: 'Shield Power', icon: '🛡️', key: 'shield_power', min: 50, max: 500, suffix: '' },
+                        { name: 'Taunt Power', icon: '😤', key: 'taunt_power', min: 1, max: 100, suffix: '' },
+                    ],
+                    themeColor: '#B89060',
+                    themeColorHex: '#B89060',
+                    roleDisplay: 'Tank',
+                    roleIcon: '🛡️',
+                },
+                assassin: {
+                    resource: { name: 'Energy', icon: '⚡', color: '#FFD740' },
+                    stats: [
+                        { name: 'HP', icon: '❤️', key: 'hp', min: 800, max: 3500, suffix: '' },
+                        { name: 'Burst Dmg', icon: '💢', key: 'burst_dmg', min: 200, max: 1500, suffix: '' },
+                        { name: 'Crit Rate', icon: '💥', key: 'crit_rate', min: 10, max: 80, suffix: '%' },
+                        { name: 'Crit Damage', icon: '💥', key: 'crit_dmg', min: 150, max: 300, suffix: '%' },
+                        { name: 'Dodge', icon: '💨', key: 'dodge', min: 5, max: 50, suffix: '%' },
+                        { name: 'Atk Speed', icon: '⚡', key: 'atk_speed', min: 10, max: 200, suffix: '' },
+                    ],
+                    themeColor: '#1C1C1C',
+                    themeColorHex: '#1C1C1C',
+                    roleDisplay: 'Assassin',
+                    roleIcon: '🗡️',
+                },
+                marksman: {
+                    resource: { name: 'Ammo', icon: '🎯', color: '#D4A030' },
+                    stats: [
+                        { name: 'HP', icon: '❤️', key: 'hp', min: 700, max: 3000, suffix: '' },
+                        { name: 'ATK', icon: '⚔️', key: 'atk', min: 150, max: 800, suffix: '' },
+                        { name: 'Accuracy', icon: '🎯', key: 'accuracy', min: 10, max: 90, suffix: '%' },
+                        { name: 'Atk Speed', icon: '⚡', key: 'atk_speed', min: 10, max: 200, suffix: '' },
+                        { name: 'Crit Rate', icon: '💥', key: 'crit_rate', min: 5, max: 60, suffix: '%' },
+                        { name: 'Range Power', icon: '🏹', key: 'range_power', min: 50, max: 400, suffix: '' },
+                    ],
+                    themeColor: '#C8A040',
+                    themeColorHex: '#C8A040',
+                    roleDisplay: 'Marksman',
+                    roleIcon: '🏹',
+                },
+                support: {
+                    resource: { name: 'Energy', icon: '⚡', color: '#FFD740' },
+                    stats: [
+                        { name: 'HP', icon: '❤️', key: 'hp', min: 600, max: 3500, suffix: '' },
+                        { name: 'Heal Power', icon: '💚', key: 'heal_power', min: 100, max: 800, suffix: '' },
+                        { name: 'Buff Strength', icon: '✨', key: 'buff_strength', min: 10, max: 200, suffix: '' },
+                        { name: 'CD Reduction', icon: '⏱️', key: 'cd_reduction', min: 5, max: 50, suffix: '%' },
+                        { name: 'Utility Power', icon: '🔧', key: 'utility_power', min: 50, max: 300, suffix: '' },
+                        { name: 'Speed', icon: '💨', key: 'speed', min: 10, max: 200, suffix: '' },
+                    ],
+                    themeColor: '#33BB77',
+                    themeColorHex: '#33BB77',
+                    roleDisplay: 'Support',
+                    roleIcon: '✨',
+                },
+            };
+
+            // === RARITY CONFIGURATION ===
+            const rarityConfig = {
+                common: {
+                    display: 'Common',
+                    color: '#B0B0B0',
+                    glow: 'rgba(176,176,176,0.4)',
+                    glow2: 'rgba(176,176,176,0.12)',
+                    borderColor: '#A0A0A0',
+                    textGlow: 'rgba(180,180,180,0.4)',
+                },
+                rare: {
+                    display: 'Rare',
+                    color: '#4488DD',
+                    glow: 'rgba(68,136,221,0.55)',
+                    glow2: 'rgba(68,136,221,0.18)',
+                    borderColor: '#5599EE',
+                    textGlow: 'rgba(80,150,240,0.5)',
+                },
+                epic: {
+                    display: 'Epic',
+                    color: '#9944EE',
+                    glow: 'rgba(153,68,238,0.6)',
+                    glow2: 'rgba(153,68,238,0.2)',
+                    borderColor: '#AA55FF',
+                    textGlow: 'rgba(160,80,255,0.55)',
+                },
+                legendary: {
+                    display: 'Legendary',
+                    color: '#E8B830',
+                    glow: 'rgba(232,184,48,0.65)',
+                    glow2: 'rgba(232,184,48,0.22)',
+                    borderColor: '#F0C840',
+                    textGlow: 'rgba(240,200,70,0.6)',
+                },
+                mythic: {
+                    display: 'Mythic',
+                    color: '#E83040',
+                    glow: 'rgba(255,30,60,0.7)',
+                    glow2: 'rgba(255,30,60,0.25)',
+                    borderColor: '#FF2048',
+                    textGlow: 'rgba(255,50,80,0.65)',
+                    isRainbow: true,
+                },
+            };
+
+            // === ELEMENT CONFIGURATION ===
+            const elementConfig = {
+                fire: { display: 'Fire', icon: '🔥', color: '#F05020' },
+                water: { display: 'Water', icon: '💧', color: '#3090E0' },
+                earth: { display: 'Earth', icon: '🪨', color: '#A07040' },
+                wind: { display: 'Wind', icon: '🌪️', color: '#70C040' },
+                dark: { display: 'Dark', icon: '🌑', color: '#6040A0' },
+                light: { display: 'Light', icon: '☀️', color: '#F8D060' },
+            };
+
+            // === STATE ===
+            let currentRole = 'fighter';
+            let currentRarity = 'rare';
+            let currentElement = 'fire';
+            let currentStats = {}; // { key: value }
+
+            // Initialize stats for default role
+            function initStatsForRole(roleKey) {
+                const cfg = roleConfig[roleKey];
+                const stats = {};
+                cfg.stats.forEach(s => {
+                    stats[s.key] = Math.floor((s.min + s.max) / 2);
+                });
+                return stats;
+            }
+            currentStats = initStatsForRole('fighter');
+
+            // === BUILD STATS FORM ===
+            function buildStatsForm() {
+                const cfg = roleConfig[currentRole];
+                statsGridForm.innerHTML = '';
+                cfg.stats.forEach((s, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'stat-field';
+                    const val = currentStats[s.key] !== undefined ? currentStats[s.key] : Math.floor((s
+                        .min + s.max) / 2);
+                    div.innerHTML = `
+                        <label>${s.icon} ${s.name}${s.suffix ? ' (' + s.suffix + ')' : ''}</label>
+                        <input type="number" 
+                               data-stat-key="${s.key}" 
+                               value="${val}" 
+                               min="${s.min}" 
+                               max="${s.max}" 
+                               step="1"
+                               placeholder="${s.min}-${s.max}">
+                    `;
+                    statsGridForm.appendChild(div);
+                });
+                // Update resource label
+                resourceLabel.textContent = cfg.resource.name;
+                // Attach listeners
+                statsGridForm.querySelectorAll('input').forEach(inp => {
+                    inp.addEventListener('input', onStatInputChange);
+                });
+            }
+
+            function onStatInputChange(e) {
+                const key = e.target.getAttribute('data-stat-key');
+                const val = parseInt(e.target.value) || 0;
+                currentStats[key] = val;
+                updateCardStatsDisplay();
+            }
+
+            // === UPDATE CARD STATS DISPLAY ===
+            function updateCardStatsDisplay() {
+                const cfg = roleConfig[currentRole];
+                cardStatsGrid.innerHTML = '';
+                cfg.stats.forEach(s => {
+                    const val = currentStats[s.key] !== undefined ? currentStats[s.key] : 0;
+                    const div = document.createElement('div');
+                    div.className = 'card-stat-item';
+                    div.innerHTML = `
+                        <span class="stat-icon">${s.icon}</span>
+                        <span class="stat-label">${s.name}</span>
+                        <span class="stat-value">${val}${s.suffix || ''}</span>
+                    `;
+                    cardStatsGrid.appendChild(div);
+                });
+                // Update resource bar
+                resIcon.textContent = cfg.resource.icon;
+                resName.textContent = cfg.resource.name;
+                resFillInner.style.setProperty('--resource-color', cfg.resource.color);
+                resFillInner.style.background = cfg.resource.color;
+                // Update resource percentage (use first stat as reference)
+                const resourceKey = cfg.stats.find(s => s.name === cfg.resource.name || s.key.includes(
+                    'stamina') || s.key.includes('mana') || s.key.includes('rage') || s.key.includes(
+                    'energy') || s.key.includes('ammo'));
+                if (resourceKey && currentStats[resourceKey.key] !== undefined) {
+                    const pct = Math.min(100, Math.max(5, (currentStats[resourceKey.key] / resourceKey.max) *
+                        100));
+                    resFillInner.style.width = pct + '%';
+                } else {
+                    resFillInner.style.width = '65%';
+                }
+            }
+
+            // === UPDATE CARD THEME ===
+            function updateCardTheme() {
+                const roleCfg = roleConfig[currentRole];
+                const rarityCfg = rarityConfig[currentRarity];
+                const elemCfg = elementConfig[currentElement];
+
+                // Blend role color + rarity color
+                const blendedGlow = blendColors(roleCfg.themeColorHex, rarityCfg.color, 0.5);
+                const blendedGlow2 = blendColors(roleCfg.themeColorHex, rarityCfg.color, 0.35);
+
+                // Set CSS custom properties
+                theCard.style.setProperty('--rarity-color', rarityCfg.color);
+                theCard.style.setProperty('--rarity-glow', rarityCfg.glow);
+                theCard.style.setProperty('--rarity-glow-2', rarityCfg.glow2);
+                theCard.style.setProperty('--role-color', roleCfg.themeColorHex);
+                theCard.style.setProperty('--element-color', elemCfg.color);
+
+                // Update card border via box-shadow
+                const borderGlow = rarityCfg.isRainbow ?
+                    '0 0 0 3px #ff0040, 0 0 30px rgba(255,0,60,0.7), 0 0 70px rgba(255,0,60,0.25)' :
+                    `0 0 0 3px ${rarityCfg.borderColor}, 0 0 25px ${rarityCfg.glow}, 0 0 60px ${rarityCfg.glow2}`;
+
+                theCard.style.boxShadow = `${borderGlow}, 0 20px 50px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04)`;
+
+                // Update card aura
+                cardAura.style.boxShadow = `0 0 40px ${rarityCfg.glow}, 0 0 80px ${rarityCfg.glow2}`;
+
+                // Mythic rainbow class
+                if (rarityCfg.isRainbow) {
+                    theCard.classList.add('mythic-rainbow');
+                } else {
+                    theCard.classList.remove('mythic-rainbow');
+                }
+
+                // Update badges
+                badgeRarity.textContent = rarityCfg.display;
+                badgeRarity.style.background = rarityCfg.color;
+                badgeRole.textContent = roleCfg.roleIcon + ' ' + roleCfg.roleDisplay;
+                badgeRole.style.background = roleCfg.themeColorHex;
+                badgeElement.textContent = elemCfg.icon + ' ' + elemCfg.display;
+                badgeElement.style.background = elemCfg.color;
+
+                // Update bottom accent
+                cardBottomAccent.style.background = `linear-gradient(90deg, transparent, ${rarityCfg.color}, transparent)`;
+
+                // Update ability box border
+                const abilityBox = document.getElementById('cardAbilityBox');
+                if (abilityBox) {
+                    abilityBox.style.borderColor = rarityCfg.color;
+                    abilityBox.style.boxShadow = `0 0 15px ${rarityCfg.glow}, inset 0 0 20px rgba(0,0,0,0.2)`;
+                }
+
+                // Update name text glow
+                cardNameDisplay.style.textShadow = `0 0 12px ${rarityCfg.textGlow}, 0 0 25px ${rarityCfg.glow}`;
+                cardNameDisplay.style.color = rarityCfg.isRainbow ? '#ffe0e0' : '#f8f0e0';
+
+                // Update image container border
+                cardImageContainer.style.borderBottomColor = rarityCfg.color;
+
+                // Update sparkle count for higher rarities
+                updateSparkles(rarityCfg);
+            }
+
+            function blendColors(hex1, hex2, ratio) {
+                const c1 = hexToRgb(hex1);
+                const c2 = hexToRgb(hex2);
+                const r = Math.round(c1.r * (1 - ratio) + c2.r * ratio);
+                const g = Math.round(c1.g * (1 - ratio) + c2.g * ratio);
+                const b = Math.round(c1.b * (1 - ratio) + c2.b * ratio);
+                return `rgba(${r},${g},${b},0.5)`;
+            }
+
+            function hexToRgb(hex) {
+                const clean = hex.replace('#', '');
+                return {
+                    r: parseInt(clean.substring(0, 2), 16),
+                    g: parseInt(clean.substring(2, 4), 16),
+                    b: parseInt(clean.substring(4, 6), 16),
+                };
+            }
+
+            function updateSparkles(rarityCfg) {
+                const countMap = { common: 6, rare: 12, epic: 20, legendary: 28, mythic: 40 };
+                const count = countMap[currentRarity] || 8;
+                cardSparkles.innerHTML = '';
+                for (let i = 0; i < count; i++) {
+                    const sparkle = document.createElement('div');
+                    sparkle.className = 'sparkle';
+                    sparkle.style.left = Math.random() * 90 + '%';
+                    sparkle.style.top = Math.random() * 90 + '%';
+                    sparkle.style.animationDelay = Math.random() * 4 + 's';
+                    sparkle.style.animationDuration = (2 + Math.random() * 4) + 's';
+                    sparkle.style.width = (2 + Math.random() * 4) + 'px';
+                    sparkle.style.height = sparkle.style.width;
+                    const sparkColor = rarityCfg.isRainbow ?
+                        ['#ff4060', '#ff8040', '#ffe040', '#40ff60', '#4080ff', '#c040ff'][Math.floor(Math
+                            .random() * 6)] :
+                        rarityCfg.color;
+                    sparkle.style.background = sparkColor;
+                    sparkle.style.boxShadow = `0 0 ${4 + Math.random()*8}px ${1.5 + Math.random()*3}px ${sparkColor}`;
+                    cardSparkles.appendChild(sparkle);
+                }
+            }
+
+            // === UPDATE ALL ===
+            function updateAllCardDisplay() {
+                updateCardStatsDisplay();
+                updateCardTheme();
+                cardNameDisplay.textContent = charNameInput.value || 'Unnamed';
+                cardAbilityName.textContent = abilityNameInput.value || 'Ability';
+                cardAbilityDesc.textContent = abilityDescInput.value || 'No description.';
+                cardPassiveText.textContent = passiveSkillInput.value || 'No passive skill.';
+            }
+
+            // === ROLE CHANGE ===
+            function onRoleChange() {
+                const newRole = roleSelect.value;
+                const oldCfg = roleConfig[currentRole];
+                const newCfg = roleConfig[newRole];
+
+                // Try to map old stats to new stats by key
+                const newStats = {};
+                newCfg.stats.forEach(s => {
+                    // If the same key exists in old stats, keep the value
+                    if (currentStats[s.key] !== undefined) {
+                        newStats[s.key] = Math.max(s.min, Math.min(s.max, currentStats[s.key]));
+                    } else {
+                        newStats[s.key] = Math.floor((s.min + s.max) / 2);
+                    }
+                });
+                currentStats = newStats;
+                currentRole = newRole;
+
+                buildStatsForm();
+                updateAllCardDisplay();
+                // Update resource label in form
+                resourceLabel.textContent = newCfg.resource.name;
+            }
+
+            // === RANDOM STATS ===
+            function generateRandomStats() {
+                const cfg = roleConfig[currentRole];
+                cfg.stats.forEach(s => {
+                    currentStats[s.key] = Math.floor(Math.random() * (s.max - s.min + 1)) + s.min;
+                });
+                // Update form inputs
+                const inputs = statsGridForm.querySelectorAll('input');
+                inputs.forEach(inp => {
+                    const key = inp.getAttribute('data-stat-key');
+                    if (currentStats[key] !== undefined) {
+                        inp.value = currentStats[key];
+                    }
+                });
+                updateAllCardDisplay();
+                // Brief flash effect on card
+                theCard.style.transition = 'box-shadow 0.15s';
+                theCard.style.boxShadow = theCard.style.boxShadow.replace(/0 0 25px[^,]*/,
+                    '0 0 50px rgba(255,255,255,0.8)');
+                setTimeout(() => {
+                    updateCardTheme();
+                    theCard.style.transition = 'box-shadow 0.5s';
+                }, 200);
+            }
+
+            // === IMAGE UPLOAD ===
+            imageUpload.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (!file.type.startsWith('image/')) {
+                    alert('Harap pilih file gambar yang valid.');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    cardImage.src = ev.target.result;
+                    cardImage.style.display = 'block';
+                    imagePlaceholder.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // === EVENT LISTENERS ===
+            roleSelect.addEventListener('change', onRoleChange);
+            raritySelect.addEventListener('change', function() {
+                currentRarity = raritySelect.value;
+                updateAllCardDisplay();
+            });
+            elementSelect.addEventListener('change', function() {
+                currentElement = elementSelect.value;
+                updateAllCardDisplay();
+            });
+            charNameInput.addEventListener('input', function() {
+                cardNameDisplay.textContent = charNameInput.value || 'Unnamed';
+            });
+            abilityNameInput.addEventListener('input', function() {
+                cardAbilityName.textContent = abilityNameInput.value || 'Ability';
+            });
+            abilityDescInput.addEventListener('input', function() {
+                cardAbilityDesc.textContent = abilityDescInput.value || 'No description.';
+            });
+            passiveSkillInput.addEventListener('input', function() {
+                cardPassiveText.textContent = passiveSkillInput.value || 'No passive skill.';
+            });
+            btnRandom.addEventListener('click', generateRandomStats);
+
+            // === DOWNLOAD ===
+            btnDownload.addEventListener('click', function() {
+                const cardEl = document.getElementById('theCard');
+                // Temporarily freeze animations for cleaner capture
+                const origAnimation = cardEl.style.animation;
+                cardEl.style.animation = 'none';
+                const origTransition = cardEl.style.transition;
+                cardEl.style.transition = 'none';
+
+                // Slight delay to let styles settle
+                setTimeout(() => {
+                    html2canvas(cardEl, {
+                        scale: 3,
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: '#0a0a0f',
+                        logging: false,
+                    }).then(canvas => {
+                        // Restore
+                        cardEl.style.animation = origAnimation;
+                        cardEl.style.transition = origTransition;
+
+                        // Generate filename
+                        const name = (charNameInput.value || 'character').replace(
+                            /[^a-zA-Z0-9]/g, '-').toLowerCase();
+                        const role = currentRole;
+                        const rarity = currentRarity;
+                        const filename = `${name}-${role}-${rarity}-card.png`;
+
+                        // Trigger download
+                        const link = document.createElement('a');
+                        link.download = filename;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+
+                        // Brief success feedback
+                        const origText = btnDownload.innerHTML;
+                        btnDownload.innerHTML =
+                            '<span class="btn-icon">✅</span> Downloaded!';
+                        btnDownload.style.background =
+                            'linear-gradient(135deg, #1a3a1a, #0a2a0a)';
+                        setTimeout(() => {
+                            btnDownload.innerHTML = origText;
+                            btnDownload.style.background =
+                                'linear-gradient(135deg, #3a3010, #2a2008)';
+                        }, 1800);
+                    }).catch(err => {
+                        cardEl.style.animation = origAnimation;
+                        cardEl.style.transition = origTransition;
+                        console.error('Download error:', err);
+                        alert('Gagal mengunduh kartu. Silakan coba lagi.');
+                    });
+                }, 150);
+            });
+
+            // === PARALLAX TILT ON HOVER ===
+            const cardPanel = document.getElementById('cardPanel');
+            cardPanel.addEventListener('mousemove', function(e) {
+                const rect = cardPanel.getBoundingClientRect();
+                const cardRect = theCard.getBoundingClientRect();
+                const centerX = cardRect.left + cardRect.width / 2;
+                const centerY = cardRect.top + cardRect.height / 2;
+                const mouseX = e.clientX;
+                const mouseY = e.clientY;
+                const deltaX = (mouseX - centerX) / (cardRect.width / 2);
+                const deltaY = (mouseY - centerY) / (cardRect.height / 2);
+                const maxTilt = 8;
+                const tiltX = Math.max(-maxTilt, Math.min(maxTilt, -deltaY * maxTilt));
+                const tiltY = Math.max(-maxTilt, Math.min(maxTilt, deltaX * maxTilt));
+                cardWrapper.style.transform = `perspective(1200px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale3d(1.02,1.02,1)`;
+            });
+            cardPanel.addEventListener('mouseleave', function() {
+                cardWrapper.style.transform =
+                    'perspective(1200px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)';
+            });
+
+            // === TOUCH TILT FOR MOBILE ===
+            cardPanel.addEventListener('touchmove', function(e) {
+                if (e.touches.length === 1) {
+                    const rect = cardPanel.getBoundingClientRect();
+                    const cardRect = theCard.getBoundingClientRect();
+                    const centerX = cardRect.left + cardRect.width / 2;
+                    const centerY = cardRect.top + cardRect.height / 2;
+                    const touchX = e.touches[0].clientX;
+                    const touchY = e.touches[0].clientY;
+                    const deltaX = (touchX - centerX) / (cardRect.width / 2);
+                    const deltaY = (touchY - centerY) / (cardRect.height / 2);
+                    const maxTilt = 6;
+                    const tiltX = Math.max(-maxTilt, Math.min(maxTilt, -deltaY * maxTilt));
+                    const tiltY = Math.max(-maxTilt, Math.min(maxTilt, deltaX * maxTilt));
+                    cardWrapper.style.transform =
+                        `perspective(1200px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale3d(1.01,1.01,1)`;
+                }
+            }, { passive: true });
+            cardPanel.addEventListener('touchend', function() {
+                cardWrapper.style.transform =
+                    'perspective(1200px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)';
+            });
+
+            // === INITIAL SETUP ===
+            function initialize() {
+                currentRole = roleSelect.value;
+                currentRarity = raritySelect.value;
+                currentElement = elementSelect.value;
+                currentStats = initStatsForRole(currentRole);
+                buildStatsForm();
+                updateAllCardDisplay();
+                // Set initial sparkles
+                updateSparkles(rarityConfig[currentRarity]);
+            }
+            initialize();
+
+            console.log('⚔️ Card Generator TCG RPG Premium siap!');
+            console.log('   ✨ Upload gambar, isi data, pilih role & rarity');
+            console.log('   🎲 Klik Random Stats untuk generate acak');
+            console.log('   📥 Klik Download untuk menyimpan sebagai PNG');
+            console.log('   💎 Role: Fighter | Mage | Tank | Assassin | Marksman | Support');
+            console.log('   💠 Rarity: Common | Rare | Epic | Legendary | Mythic');
+        })();
+    </script>
+</body>
+</html>
