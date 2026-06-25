@@ -21,33 +21,27 @@
         <p class="logo-sub">---</p>
       </div>
 
-<div class="login-card">
+      <div class="login-card">
+        <div class="field-group">
+          <label for="input-username">USERNAME</label>
+          <input id="input-username" type="text" placeholder="min. 3 karakter" maxlength="20" autocomplete="off" spellcheck="false" />
+        </div>
 
-  <div class="field-group">
-    <label for="input-username">USERNAME</label>
-    <input id="input-username" type="text" placeholder="min. 3 karakter" maxlength="20" autocomplete="off" spellcheck="false" />
-  </div>
+        <div class="field-group">
+          <label for="input-token">GITHUB TOKEN <span class="label-hint">(personal access token)</span></label>
+          <div class="token-wrapper">
+            <input id="input-token" type="password" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off" spellcheck="false" />
+            <button id="btn-toggle-token" class="btn-icon" type="button" aria-label="Toggle token visibility">
+              <i class="fa fa-eye"></i>
+            </button>
+          </div>
+        </div>
 
-  <div class="field-group checkbox-group">
-    <label class="checkbox-label">
-      <input id="chk-remember" type="checkbox" checked />
-      <span class="checkmark"></span>
-      INGAT USERNAME
-    </label>
-  </div>
-
-  <div id="login-error" class="error-msg hidden"></div>
-
-  <button id="btn-login" class="btn-primary">
-    <i class="fa fa-play"></i> LOGIN & PLAY
-  </button>
-
-</div>
         <div class="field-group checkbox-group">
           <label class="checkbox-label">
             <input id="chk-remember" type="checkbox" checked />
             <span class="checkmark"></span>
-            INGAT USERNAME
+            INGAT USERNAME &amp; TOKEN
           </label>
         </div>
 

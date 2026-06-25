@@ -84,8 +84,8 @@ const $ = id => document.getElementById(id);
 const screenLogin   = $('screen-login');
 const screenGame    = $('screen-game');
 const inputUsername = $('input-username');
-const inputToken    = { value: state.token };
-const chkRemember   = { checked: false };
+const inputToken    = document.createElement('input'); // We'll handle this differently
+const chkRemember   = $('chk-remember');
 const loginError    = $('login-error');
 const btnLogin      = $('btn-login');
 
@@ -338,7 +338,8 @@ function clearLines() {
   }
   if (!full.length) return;
 
-  // Remove full rows
+  // Remove full rows (sort descending to remove correctly)
+  full.sort((a, b) => b - a);
   full.forEach(r => state.board.splice(r, 1));
   // Add empty rows at top
   while (state.board.length < ROWS) state.board.unshift(Array(COLS).fill(null));
@@ -475,9 +476,18 @@ document.addEventListener('keydown', e => {
 
   // Start game from idle
   if (state.status === 'idle' && (e.code === 'Space' || e.code === 'ArrowDown')) {
-    startGame(); return;
+    e.preventDefault();
+    startGame(); 
+    return;
   }
-  if (state.status === 'gameover') return;
+  if (state.status === 'gameover') {
+    // Allow restart with Space
+    if (e.code === 'Space') {
+      e.preventDefault();
+      startGame();
+    }
+    return;
+  }
 
   switch (e.code) {
     case 'ArrowLeft':  e.preventDefault(); if (state.status === 'running') moveLeft();   break;
@@ -519,7 +529,8 @@ function bindTouchBtn(btn, action) {
     }
   }
 
-  function startHold() {
+  function startHold(e) {
+    if (e) e.preventDefault();
     btn.classList.add('pressed');
     doAction();
     if (action === 'left' || action === 'right' || action === 'softdrop') {
@@ -529,15 +540,16 @@ function bindTouchBtn(btn, action) {
     }
   }
 
-  function endHold() {
+  function endHold(e) {
+    if (e) e.preventDefault();
     btn.classList.remove('pressed');
     clearTimeout(holdTimer);
     clearInterval(holdInterval);
   }
 
-  btn.addEventListener('touchstart',  e => { e.preventDefault(); startHold(); }, { passive: false });
-  btn.addEventListener('touchend',    e => { e.preventDefault(); endHold();   }, { passive: false });
-  btn.addEventListener('touchcancel', e => { e.preventDefault(); endHold();   }, { passive: false });
+  btn.addEventListener('touchstart',  startHold, { passive: false });
+  btn.addEventListener('touchend',    endHold, { passive: false });
+  btn.addEventListener('touchcancel', endHold, { passive: false });
   // Fallback for mouse
   btn.addEventListener('mousedown',  startHold);
   btn.addEventListener('mouseup',    endHold);
@@ -546,7 +558,7 @@ function bindTouchBtn(btn, action) {
 
 ['tc-left', 'tc-right', 'tc-rotate', 'tc-down', 'tc-drop'].forEach(id => {
   const el = $(id);
-  bindTouchBtn(el, el.dataset.action);
+  if (el) bindTouchBtn(el, el.dataset.action);
 });
 
 /* ──────────────────────────────────────────────────────────
@@ -563,17 +575,14 @@ function clearLoginError() {
   loginError.classList.add('hidden');
 }
 
-/** Toggle token visibility */
-
-  const isPassword = inputToken.type === 'password';
-  inputToken.type = isPassword ? 'text' : 'password';
-});
-
 /** Restore saved credentials */
 function restoreSaved() {
   const savedToken    = localStorage.getItem('tetris_gh_token');
   const savedUsername = localStorage.getItem('tetris_gh_username');
-  if (savedToken)    inputToken.value    = savedToken;
+  if (savedToken) {
+    // We'll use the token from localStorage
+    state.token = savedToken;
+  }
   if (savedUsername) inputUsername.value = savedUsername;
 }
 
@@ -735,6 +744,7 @@ function renderLeaderboard(players) {
   if (!players.length) {
     lbError.textContent = 'Belum ada skor. Jadilah yang pertama!';
     lbError.classList.remove('hidden');
+    lbTable.classList.add('hidden');
     return;
   }
 
@@ -937,19 +947,25 @@ window.addEventListener('keydown', e => {
    INIT
 ────────────────────────────────────────────────────────── */
 (function init() {
+  // Set initial token from localStorage if available
+  const savedToken = localStorage.getItem('tetris_gh_token');
+  if (savedToken) {
+    state.token = savedToken;
+  }
+  
   restoreSaved();
   resize();
 
   // If we have saved credentials, attempt auto-restore
-  const savedToken    = localStorage.getItem('tetris_gh_token');
+  const savedToken2 = localStorage.getItem('tetris_gh_token');
   const savedUsername = localStorage.getItem('tetris_gh_username');
-  if (savedToken && savedUsername) {
+  if (savedToken2 && savedUsername) {
     // Attempt silent login
     (async () => {
       try {
-        const ghLogin = await resolveGhUser(savedToken);
+        const ghLogin = await resolveGhUser(savedToken2);
         state.username  = savedUsername;
-        state.token     = savedToken;
+        state.token     = savedToken2;
         state.ghOwner   = ghLogin;
         state.highscore = parseInt(localStorage.getItem(`tetris_hs_${savedUsername}`) || '0', 10);
         displayUsername.textContent = savedUsername;
@@ -960,6 +976,7 @@ window.addEventListener('keydown', e => {
         fetchLeaderboard(false);
       } catch (_) {
         // Token expired / invalid — stay on login screen
+        console.log('Auto-login failed, staying on login screen');
       }
     })();
   }
